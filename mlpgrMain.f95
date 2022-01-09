@@ -824,12 +824,12 @@ PROGRAM THREED_BREAKINGWAVE
       IF(J.EQ.0)THEN
          CALL F_PT%GENPLANEPOI
          I = NODEID(-1)
-         !NLMAX=40
+         !NLMAX=100 GUESS
          CALL MLPG_GET_UP2(MLDOM, LNODE, NODEID(-7:I), NWALLID, I, &
             COORX(1:I,1), COORY(1:I,1), COORZ(1:I,1), &
             UX(1:I,1), UY(1:I,1), UZ(1:I,1), P(1:I), &
             F_PT%NP, F_PT%X, F_PT%Y, F_PT%Z, &
-            F_PT%U, F_PT%V, F_PT%W, F_PT%P, DDL, NLMAXN)
+            F_PT%U, F_PT%V, F_PT%W, F_PT%P, DDL, 100)
          CALL F_PT%CALCMASFLUX(1000D0, TMPR1)
       ENDIF
 
@@ -846,12 +846,12 @@ PROGRAM THREED_BREAKINGWAVE
       IF(J.EQ.0)THEN
          CALL F_PT%GENPLANEPOI
          I = NODEID(-1)
-         !NLMAX=50 GUESS
+         !NLMAX=100 GUESS
          CALL MLPG_GET_UP2(MLDOM, LNODE, NODEID(-7:I), NWALLID, I, &
             COORX(1:I,1), COORY(1:I,1), COORZ(1:I,1), &
             UX(1:I,1), UY(1:I,1), UZ(1:I,1), P(1:I), &
             F_PT%NP, F_PT%X, F_PT%Y, F_PT%Z, &
-            F_PT%U, F_PT%V, F_PT%W, F_PT%P, DDL, 50)
+            F_PT%U, F_PT%V, F_PT%W, F_PT%P, DDL, 100)
          CALL F_PT%CALCMASFLUX(1000D0, TMPR2)
       ENDIF
       WRITE(8,'(" [FLX] FLUXIN FLUXOT ",2F15.6)')TMPR1, TMPR2
