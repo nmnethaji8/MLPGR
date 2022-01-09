@@ -47,7 +47,7 @@ Q) Cylinder (Centre-X Centre-Y Radius)
 Q) X Location of Sponge layer start (before right-wall)
 13.00
 Q) Remeshing Freq (=0 to disable)
-1
+30
 
 Q) Wave probe numbers and locations (nProbe | X Y )
 9
