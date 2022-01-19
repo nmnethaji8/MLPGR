@@ -153,48 +153,6 @@ SUBROUTINE U_UPDATE_POW2(LNODE,NODN,NODEID,NWALLID,GRA,DT,COORX,COORY,COORZ,SPON
 
 END SUBROUTINE U_UPDATE_POW2
 
-MODULE UB2
-   IMPLICIT NONE
-   INTEGER(KIND=4),MANAGED,ALLOCATABLE::NNN(:),NDD(:,:)
-CONTAINS
-   attributes(device) function rargsort(a,N) result(b)
-   ! Returns the indices that would sort an array.
-   !
-   ! Arguments
-   ! ---------
-   !
-   integer(kind=4), intent(in) :: N                           ! number of numbers/vectors
-   real(kind=8), intent(in):: a(N)   ! array of numbers
-   integer(kind=4),intent(out) :: b(N)         ! indices into the array 'a' that sort it
-   !
-   ! Example
-   ! -------
-   !
-   ! rargsort([4.1_dp, 2.1_dp, 2.05_dp, -1.5_dp, 4.2_dp]) ! Returns [4, 3, 2, 1, 5]
-
-
-   integer(kind=4) :: i,imin                      ! indices: i, i of smallest
-   integer(kind=4) :: temp1                       ! temporary
-   real(kind=8) :: temp2
-   real(kind=8) :: a2(N)
-   a2 = a
-   do i = 1, N
-      b(i) = i
-      !print*,a2(i)
-   end do
-   do i = 1, N-1
-      ! find ith smallest in 'a'
-      imin = minloc(a2(i:n),1)
-      ! swap to position i in 'a' and 'b', if not already there
-      if (imin /= i) then
-         temp2 = a2(i); a2(i) = a2(imin); a2(imin) = temp2
-         temp1 = b(i); b(i) = b(imin); b(imin) = temp1
-      end if
-   end do
-end function rargsort
-
-END MODULE UB2
-
 SUBROUTINE U_BOUNDARY2(IFSI)
    USE COMMONMOD
    USE MLPGKINE
