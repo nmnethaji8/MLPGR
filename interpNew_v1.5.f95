@@ -377,11 +377,11 @@ IMPLICIT NONE
     !! BASE FUNCTION
     SELECT CASE(PLANEID)
       CASE(1)
-        CALL BASEFUN_SHA2(MBA,PB2,COOR1(NI),COOR2(NI),TMPR)
+        CALL BASEFUN_SHA(MBA,PB2,COOR1(NI),COOR2(NI),TMPR)
       CASE(2)
-        CALL BASEFUN_SHA2(MBA,PB2,TMPR,COOR1(NI),COOR2(NI))
+        CALL BASEFUN_SHA(MBA,PB2,TMPR,COOR1(NI),COOR2(NI))
       CASE(3)
-        CALL BASEFUN_SHA2(MBA,PB2,COOR1(NI),TMPR,COOR2(NI))
+        CALL BASEFUN_SHA(MBA,PB2,COOR1(NI),TMPR,COOR2(NI))
       CASE DEFAULT
         PRINT*,"[ERR] SHAPPARA_R_2D_SHA : WRONG PLANEID", PLANEID
         STOP
@@ -415,23 +415,7 @@ END SUBROUTINE SHAPPARA_R_2D_SHA
 !!--------------------- END SHAPPARA_R_2D_SHA ---------------------!!
 
   !!-------------------------- BASEFUN_SHA --------------------------!!
-  ATTRIBUTES(HOST,DEVICE) SUBROUTINE BASEFUN_SHA(MBA,PT,XQ,YQ,ZQ)
-  IMPLICIT NONE
-  
-    INTEGER(KIND=4),INTENT(IN)::MBA
-    REAL(KIND=8),INTENT(IN)::XQ,YQ,ZQ
-    REAL(KIND=8),INTENT(OUT)::PT(MBA)
-
-    IF(MBA.EQ.4)THEN
-      PT(1)=1.0
-      PT(2)=XQ
-      PT(3)=YQ
-      PT(4)=ZQ
-    ENDIF
-  
-  END SUBROUTINE BASEFUN_SHA
-
-  SUBROUTINE BASEFUN_SHA2(MBA,PT,XQ,YQ,ZQ)
+  SUBROUTINE BASEFUN_SHA(MBA,PT,XQ,YQ,ZQ)
    !$acc routine seq
    IMPLICIT NONE
    
@@ -449,38 +433,11 @@ END SUBROUTINE SHAPPARA_R_2D_SHA
          STOP
      ENDIF
    
-   END SUBROUTINE BASEFUN_SHA2
+   END SUBROUTINE BASEFUN_SHA
   !!------------------------ END BASEFUN_SHA ------------------------!!
 
   !!------------------------ SHAPEFUN_PHI_SHA -----------------------!!
-  ATTRIBUTES(HOST,DEVICE) SUBROUTINE SHAPEFUN_PHI_SHA(MBA,NLMAX,NN,AINV,B,PT,AA,PHI,I,J,K)
-  IMPLICIT NONE
-    
-    INTEGER(KIND=4),INTENT(IN)::MBA,NLMAX,NN
-    REAL(KIND=8),INTENT(IN)::AINV(MBA,MBA),B(MBA,NLMAX),PT(MBA)
-    REAL(KIND=8),INTENT(OUT)::PHI(NLMAX),AA(MBA,NLMAX)
-    
-    INTEGER(KIND=4),INTENT(INOUT)::I,J,K
-  
-    DO I=1,MBA
-      DO J=1,NN
-        AA(I,J)=0D0
-        DO K=1,MBA
-          AA(I,J)=AA(I,J)+AINV(I,K)*B(K,J)
-        ENDDO
-      ENDDO
-    ENDDO
-    
-    DO I=1,NN
-      PHI(I)=0D0
-      DO J=1,MBA
-        PHI(I)=PHI(I)+PT(J)*AA(J,I)
-      ENDDO
-    ENDDO
-  
-  END SUBROUTINE SHAPEFUN_PHI_SHA
-
-  SUBROUTINE SHAPEFUN_PHI_SHA2(MBA,NLMAX,NN,AINV,B,PT,AA,PHI,I,J,K)
+  SUBROUTINE SHAPEFUN_PHI_SHA(MBA,NLMAX,NN,AINV,B,PT,AA,PHI,I,J,K)
   !$acc routine seq
 IMPLICIT NONE
   
@@ -506,93 +463,11 @@ IMPLICIT NONE
     ENDDO
   ENDDO
 
-END SUBROUTINE SHAPEFUN_PHI_SHA2
+END SUBROUTINE SHAPEFUN_PHI_SHA
   !!---------------------- END SHAPEFUN_PHI_SHA ---------------------!!
 
   !!--------------------------- FINDINV4X4 --------------------------!!
-  ATTRIBUTES(HOST,DEVICE) SUBROUTINE FINDINV4X4(A,AINV,ADET)
-  IMPLICIT NONE
-  
-    REAL(KIND=8),INTENT(IN)::A(4,4)
-    REAL(KIND=8),INTENT(OUT)::AINV(4,4)
-    
-    REAL(KIND=8),INTENT(INOUT)::ADET
-  
-    AINV=0D0
-  
-    ADET=(-A(1,1))*(A(2,4)**2)*A(3,3) + (A(1,4)**2)*(A(2,3)**2 &
-        - A(2,2)*A(3,3)) + 2d0*A(1,1)*A(2,3)*A(2,4)*A(3,4) &
-      + (A(1,2)**2)*(A(3,4)**2) - A(1,1)*A(2,2)*(A(3,4)**2) &
-      - 2d0*A(1,4)*(A(1,3)*A(2,3)*A(2,4) - A(1,2)*A(2,4)*A(3,3) &
-        - A(1,3)*A(2,2)*A(3,4) + A(1,2)*A(2,3)*A(3,4)) &
-      - A(1,1)*(A(2,3)**2)*A(4,4) - (A(1,2)**2)*A(3,3)*A(4,4) &
-      + A(1,1)*A(2,2)*A(3,3)*A(4,4) + (A(1,3)**2)*(A(2,4)**2 &
-        - A(2,2)*A(4,4)) + A(1,2)*A(1,3)*(-2d0*A(2,4)*A(3,4) &
-        + 2d0*A(2,3)*A(4,4))
-  
-  
-    AINV(1,1)=(-A(2,4)**2)*A(3,3) + 2D0*A(2,3)*A(2,4)*A(3,4) &
-      - A(2,2)*A(3,4)**2 - A(2,3)**2*A(4,4) + A(2,2)*A(3,3)*A(4,4)
-  
-    AINV(1,2)=A(1,4)*A(2,4)*A(3,3) - A(1,4)*A(2,3)*A(3,4) &
-      - A(1,3)*A(2,4)*A(3,4) + A(1,2)*A(3,4)**2 &
-      + A(1,3)*A(2,3)*A(4,4) - A(1,2)*A(3,3)*A(4,4)
-  
-    AINV(1,3)=(-A(1,4))*A(2,3)*A(2,4) + A(1,3)*A(2,4)**2 &
-      + A(1,4)*A(2,2)*A(3,4) - A(1,2)*A(2,4)*A(3,4) &
-      - A(1,3)*A(2,2)*A(4,4) + A(1,2)*A(2,3)*A(4,4)
-  
-    AINV(1,4)=(-A(1,3))*A(2,3)*A(2,4) + A(1,2)*A(2,4)*A(3,3) &
-      + A(1,4)*(A(2,3)**2 - A(2,2)*A(3,3)) &
-      + A(1,3)*A(2,2)*A(3,4) - A(1,2)*A(2,3)*A(3,4)
-  
-    AINV(2,1)=AINV(1,2)
-  
-    AINV(2,2)=(-A(1,4)**2)*A(3,3) + 2D0*A(1,3)*A(1,4)*A(3,4) &
-      - A(1,1)*A(3,4)**2 - A(1,3)**2*A(4,4) + A(1,1)*A(3,3)*A(4,4)
-  
-    AINV(2,3)=A(1,4)**2*A(2,3) + A(1,1)*A(2,4)*A(3,4) &
-      - A(1,4)*(A(1,3)*A(2,4) + A(1,2)*A(3,4)) &
-      + A(1,2)*A(1,3)*A(4,4) - A(1,1)*A(2,3)*A(4,4)
-  
-    AINV(2,4)=A(1,3)**2*A(2,4) + A(1,2)*A(1,4)*A(3,3) &
-      - A(1,1)*A(2,4)*A(3,3) + A(1,1)*A(2,3)*A(3,4) &
-      - A(1,3)*(A(1,4)*A(2,3) + A(1,2)*A(3,4))
-  
-    AINV(3,1)=AINV(1,3)
-  
-    AINV(3,2)=AINV(2,3)
-  
-    AINV(3,3)=(-A(1,4)**2)*A(2,2) + 2D0*A(1,2)*A(1,4)*A(2,4) &
-      - A(1,1)*A(2,4)**2 - A(1,2)**2*A(4,4) + A(1,1)*A(2,2)*A(4,4)
-  
-    AINV(3,4)=A(1,3)*A(1,4)*A(2,2) - A(1,2)*A(1,4)*A(2,3) &
-      - A(1,2)*A(1,3)*A(2,4) + A(1,1)*A(2,3)*A(2,4) &
-      + A(1,2)**2*A(3,4) - A(1,1)*A(2,2)*A(3,4)
-  
-    AINV(4,1)=AINV(1,4)
-  
-    AINV(4,2)=AINV(2,4)
-  
-    AINV(4,3)=AINV(3,4)
-  
-    AINV(4,4)=(-A(1,3)**2)*A(2,2) + 2D0*A(1,2)*A(1,3)*A(2,3) &
-      - A(1,1)*A(2,3)**2 - A(1,2)**2*A(3,3) + A(1,1)*A(2,2)*A(3,3)
-  
-  
-    IF(ABS(ADET).LT.1E-15)THEN
-      AINV=0D0
-      AINV(1,1)=1D0
-      AINV(2,2)=1D0
-      AINV(3,3)=1D0
-      AINV(4,4)=1D0
-    ELSE
-      AINV=AINV/ADET
-    ENDIF
-  
-  END SUBROUTINE FINDINV4X4
-
-  SUBROUTINE FINDINV4X42(A,AINV,ADET)
+  SUBROUTINE FINDINV4X4(A,AINV,ADET)
    !$acc routine seq
    IMPLICIT NONE
    
@@ -673,7 +548,7 @@ END SUBROUTINE SHAPEFUN_PHI_SHA2
        AINV=AINV/ADET
      ENDIF
    
-   END SUBROUTINE FINDINV4X42
+   END SUBROUTINE FINDINV4X4
   !!------------------------- END FINDINV4X4 ------------------------!!
 
   ATTRIBUTES(HOST,DEVICE) SUBROUTINE SEARCH(I,J,ND,NN)
