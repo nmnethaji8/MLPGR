@@ -91,71 +91,8 @@ CONTAINS
 !!------------------------- MLPG_GET_ETA --------------------------!!
 
 !!----------------------- WEIGHTF3_XY_SHA -------------------------!!
-   ATTRIBUTES(DEVICE) SUBROUTINE WEIGHTF3_XY_SHA(FSDOM,NLMAX,NIN,XIN,YIN,XQ,YQ,&
-      NN,ND,W,IDWEI,I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1,RIAV,&
-      ETMP,DR,DR2,WWI)
-      USE NODELINKMOD
-      IMPLICIT NONE
 
-      TYPE(NODELINKTYP),INTENT(IN)::FSDOM
-      INTEGER(KIND=4),INTENT(IN)::NLMAX,NIN,IDWEI
-      INTEGER(KIND=4),INTENT(OUT)::NN
-      INTEGER(KIND=4),INTENT(OUT)::ND(0:NLMAX)
-      REAL(KIND=8),INTENT(IN)::XIN(NIN),YIN(NIN)
-      REAL(KIND=8),INTENT(IN)::XQ,YQ
-      REAL(KIND=8),INTENT(OUT)::W(NLMAX)
-
-      INTEGER(KIND=4),INTENT(INOUT)::I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1
-      REAL(KIND=8),INTENT(INOUT)::RIAV,ETMP,DR,DR2,WWI
-
-      NN=0
-      ETMP=DEXP(-(1D0**2))
-
-      !! Z=0 FOR FREE-SURFACE DOMAIN
-      DR=0
-      CALL FINDCELL(FSDOM,XQ,YQ,DR,IX,IY,IZ,IPOS)
-
-      DO IX1=IX-1,IX+1
-         DO IY1=IY-1,IY+1
-            DO IZ1=IZ-1,IZ+1
-               IF((IX1.GE.0.AND.IX1.LT.FSDOM%CELLX).AND.&
-                  (IY1.GE.0.AND.IY1.LT.FSDOM%CELLY).AND.&
-                  (IZ1.GE.0.AND.IZ1.LT.FSDOM%CELLZ))THEN
-
-                  IPOS=IX1+IY1*FSDOM%CELLX+IZ1*FSDOM%CELLY*FSDOM%CELLX
-
-                  DO I2=1,FSDOM%CELL(IPOS,0)
-                     I=FSDOM%CELL(IPOS,I2)
-
-                     DR=DSQRT((XIN(I)-XQ)**2 + (YIN(I)-YQ)**2)
-                     IF(DR.LT.RIAV)THEN
-                        DR2=DR/RIAV
-
-                        IF(IDWEI.EQ.1)THEN
-                           WWI=(DEXP(-(DR2**2))-ETMP)/(1D0-ETMP)
-                        ELSE
-                           WWI=1D0-6D0*(DR2)**2+8D0*(DR2)**3-3D0*(DR2)**4
-                        ENDIF
-
-                        IF(WWI.GT.0D0)THEN
-                           NN=NN+1
-                           IF(NN.LE.NLMAX)THEN
-                              ND(NN)=I
-                              W(NN)=WWI
-                           ELSE
-                              PRINT*," [ERR] INCREASE NLMAX IN WEIGHTF3_SHA"
-                           ENDIF
-                        ENDIF
-                     ENDIF
-                  ENDDO
-               ENDIF
-            ENDDO
-         ENDDO
-      ENDDO
-      ND(0)=NN
-   END SUBROUTINE WEIGHTF3_XY_SHA
-
-SUBROUTINE WEIGHTF3_XY_SHA2(FSDOM,NLMAX,NIN,XIN,YIN,XQ,YQ,&
+SUBROUTINE WEIGHTF3_XY_SHA(FSDOM,NLMAX,NIN,XIN,YIN,XQ,YQ,&
       NN,ND,W,IDWEI,I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1,RIAV,&
       ETMP,DR,DR2,WWI)
       !$acc routine seq
@@ -218,7 +155,7 @@ SUBROUTINE WEIGHTF3_XY_SHA2(FSDOM,NLMAX,NIN,XIN,YIN,XQ,YQ,&
          ENDDO
        ENDDO
        ND(0)=NN
-   END SUBROUTINE WEIGHTF3_XY_SHA2
+   END SUBROUTINE WEIGHTF3_XY_SHA
    !!--------------------- END WEIGHTF3_XY_SHA -----------------------!!
 
    ATTRIBUTES(GLOBAL) SUBROUTINE MLPG_GET_UP_KERNEL(DOMIN,NIN,XIN,YIN,ZIN,UIN,VIN,WIN,PIN,&
@@ -585,7 +522,7 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
       YQ=YOT(INOD)
       ZQ=0D0
 
-      CALL WEIGHTF3_XY_SHA2(FSDOM,NLMAX,NFS,XFS,YFS,XQ,YQ,&
+      CALL WEIGHTF3_XY_SHA(FSDOM,NLMAX,NFS,XFS,YFS,XQ,YQ,&
          NN,ND,W,1,I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1,RIAV,&
          ETMP,DR,DR2,WWI)
       
