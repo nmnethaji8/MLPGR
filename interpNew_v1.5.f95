@@ -266,31 +266,8 @@ IMPLICIT NONE
 END SUBROUTINE WEIGHTGRADF1_SHA
 !!--------------------- END WEIGHTGRADF1_SHA ----------------------!!
 
-  ATTRIBUTES(HOST,DEVICE) SUBROUTINE SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WSUM)
-  IMPLICIT NONE
-      
-      INTEGER(KIND=4),INTENT(IN)::NLMAX,NN  
-      REAL(KIND=8),INTENT(IN)::W(NLMAX)
-      REAL(KIND=8),INTENT(OUT)::PHI(NLMAX)
-    
-      INTEGER(KIND=4),INTENT(INOUT)::I
-      REAL(KIND=8),INTENT(INOUT)::WSUM
-  
-      !! FIND THE SUM OF THE WEIGHT FUNDTION
-      WSUM=0.D0
-      DO I=1,NN
-          WSUM=WSUM+W(I)
-      ENDDO
-  
-      !! FIND THE SHAPE FUNCTION
-      DO I=1,NN
-          PHI(I)=W(I)/WSUM
-      ENDDO
-    
-  END SUBROUTINE SHEPARDSF_SHA
-  !!----------------------- END SHEPARDSF_SHA -----------------------!!
-
-  SUBROUTINE SHEPARDSF_SHA2(PHI,NN,W,NLMAX,I,WSUM)
+!!------------------------- SHEPARDSF_SHA -------------------------!!
+  SUBROUTINE SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WSUM)
    !$acc routine seq
    IMPLICIT NONE
        
@@ -312,7 +289,7 @@ END SUBROUTINE WEIGHTGRADF1_SHA
            PHI(I)=W(I)/WSUM
        ENDDO
      
-   END SUBROUTINE SHEPARDSF_SHA2
+   END SUBROUTINE SHEPARDSF_SHA
    !!----------------------- END SHEPARDSF_SHA -----------------------!!
 
   !!------------------------ SHAPPARA_R_SHA -------------------------!!
