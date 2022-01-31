@@ -515,6 +515,23 @@ END SUBROUTINE SHAPPARA_R_2D_SHA2
     ENDIF
   
   END SUBROUTINE BASEFUN_SHA
+
+  SUBROUTINE BASEFUN_SHA2(MBA,PT,XQ,YQ,ZQ)
+   !$acc routine seq
+   IMPLICIT NONE
+   
+     INTEGER(KIND=4),INTENT(IN)::MBA
+     REAL(KIND=8),INTENT(IN)::XQ,YQ,ZQ
+     REAL(KIND=8),INTENT(OUT)::PT(MBA)
+ 
+     IF(MBA.EQ.4)THEN
+       PT(1)=1.0
+       PT(2)=XQ
+       PT(3)=YQ
+       PT(4)=ZQ
+     ENDIF
+   
+   END SUBROUTINE BASEFUN_SHA2
   !!------------------------ END BASEFUN_SHA ------------------------!!
 
   !!------------------------ SHAPEFUN_PHI_SHA -----------------------!!
