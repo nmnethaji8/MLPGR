@@ -343,69 +343,8 @@ END SUBROUTINE WEIGHTGRADF1_SHA
 END SUBROUTINE SHAPPARA_R_SHA
 !!---------------------- END SHAPPARA_R_SHA -----------------------!!
 
-  !!----------------------- SHAPPARA_R_2D_SHA -----------------------!!
-  ATTRIBUTES(DEVICE) SUBROUTINE SHAPPARA_R_2D_SHA(LNODE,MBA,NLMAX,A,B,NN,ND,W,&
-      COOR1,COOR2,PLANEID,I,NI,J,K,PB2,PP2,WEI,TMPR)
-  IMPLICIT NONE
-  
-      INTEGER(KIND=4),INTENT(IN)::MBA,NLMAX,NN,ND(0:NLMAX),LNODE,PLANEID
-      REAL(KIND=8),INTENT(IN)::W(NLMAX)
-      REAL(KIND=8),INTENT(IN)::COOR1(LNODE),COOR2(LNODE)
-      REAL(KIND=8),INTENT(OUT)::A(MBA,MBA),B(MBA,NLMAX)
-  
-      INTEGER(KIND=4),INTENT(INOUT)::I,NI,J,K
-      REAL(KIND=8),INTENT(INOUT)::PB2(MBA),PP2(MBA,MBA)
-      REAL(KIND=8),INTENT(INOUT)::WEI,TMPR
-
-      !! PLANEID - SELECT THE 2D PLANE
-      !! 1 - XY PLANE. Z=0.   COOR1=X. COOR2=Y
-      !! 2 - YZ PLANE. X=0.   COOR1=Y. COOR2=Z
-      !! 3 - XZ PLANE. Y=0.   COOR1=X. COOR2=Z
-
-      PB2=0D0
-      PP2=0D0
-      A=0D0
-      B=0D0
-      TMPR=0D0
-
-      DO I=1,NN
-        NI=ND(I)
-        WEI=W(I)
-        
-        !! BASE FUNCTION
-        SELECT CASE(PLANEID)
-          CASE(1)
-            CALL BASEFUN_SHA(MBA,PB2,COOR1(NI),COOR2(NI),TMPR)
-          CASE(2)
-            CALL BASEFUN_SHA(MBA,PB2,TMPR,COOR1(NI),COOR2(NI))
-          CASE(3)
-            CALL BASEFUN_SHA(MBA,PB2,COOR1(NI),TMPR,COOR2(NI))
-          CASE DEFAULT !Changed Default case
-            CALL BASEFUN_SHA(MBA,PB2,COOR1(NI),COOR2(NI),TMPR)
-          END SELECT
-
-      DO J=1,MBA
-        DO K=1,MBA
-          PP2(J,K)=PB2(J)*PB2(K)
-        ENDDO
-      ENDDO
-
-      DO J=1,MBA
-        DO K=1,MBA
-          A(J,K)=A(J,K)+PP2(J,K)*WEI
-        ENDDO
-        B(J,I)=PB2(J)*WEI
-      ENDDO
-    ENDDO
-    A(2,1)=A(1,2)
-    A(3,1)=A(1,3)
-    A(3,2)=A(2,3)
-    A(4,1)=A(1,4)
-    A(4,2)=A(2,4)
-    A(4,3)=A(3,4)
-  END SUBROUTINE SHAPPARA_R_2D_SHA
-
-  SUBROUTINE SHAPPARA_R_2D_SHA2(LNODE,MBA,NLMAX,A,B,NN,ND,W,&
+!!----------------------- SHAPPARA_R_2D_SHA -----------------------!!
+  SUBROUTINE SHAPPARA_R_2D_SHA(LNODE,MBA,NLMAX,A,B,NN,ND,W,&
   COOR1,COOR2,PLANEID,I,NI,J,K,PB2,PP2,WEI,TMPR)
   !$acc routine seq
 IMPLICIT NONE
@@ -471,10 +410,9 @@ IMPLICIT NONE
   A(4,2)=A(2,4)
   A(4,3)=A(3,4)
 
-END SUBROUTINE SHAPPARA_R_2D_SHA2
+END SUBROUTINE SHAPPARA_R_2D_SHA
 
-
-  !!--------------------- END SHAPPARA_R_2D_SHA ---------------------!!
+!!--------------------- END SHAPPARA_R_2D_SHA ---------------------!!
 
   !!-------------------------- BASEFUN_SHA --------------------------!!
   ATTRIBUTES(HOST,DEVICE) SUBROUTINE BASEFUN_SHA(MBA,PT,XQ,YQ,ZQ)
