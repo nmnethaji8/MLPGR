@@ -178,6 +178,46 @@ SUBROUTINE WEIGHTF3_XY_SHA2(FSDOM,NLMAX,NIN,XIN,YIN,XQ,YQ,&
 
       !! Z=0 FOR FREE-SURFACE DOMAIN
       DR=0
+      CALL FINDCELL2(FSDOM,XQ,YQ,DR,IX,IY,IZ,IPOS)
+      DO IX1=IX-1,IX+1
+         DO IY1=IY-1,IY+1
+           DO IZ1=IZ-1,IZ+1
+     
+             IF((IX1.GE.0.AND.IX1.LT.FSDOM%CELLX).AND.&
+               (IY1.GE.0.AND.IY1.LT.FSDOM%CELLY).AND.&
+               (IZ1.GE.0.AND.IZ1.LT.FSDOM%CELLZ))THEN
+     
+               IPOS=IX1+IY1*FSDOM%CELLX+IZ1*FSDOM%CELLY*FSDOM%CELLX
+               
+               DO I2=1,FSDOM%CELL(IPOS,0)
+                 I=FSDOM%CELL(IPOS,I2)
+                 DR=DSQRT((XIN(I)-XQ)**2 + (YIN(I)-YQ)**2 )
+                 IF(DR.LT.RIAV)THEN
+                   DR2=DR/RIAV
+     
+                   IF(IDWEI.EQ.1)THEN
+                     WWI=(DEXP(-(DR2**2))-ETMP)/(1D0-ETMP)
+                   ELSE
+                     WWI=1D0-6D0*(DR2)**2+8D0*(DR2)**3-3D0*(DR2)**4 
+                   ENDIF
+     
+                   IF(WWI.LE.0D0)CYCLE
+                   NN=NN+1
+                   IF(NN.GT.NLMAX)THEN
+                     PRINT*," [ERR] INCREASE NLMAX IN WEIGHTF3_SHA"
+                     STOP
+                   ENDIF
+                   ND(NN)=I
+                   W(NN)=WWI
+                 ENDIF
+               ENDDO
+                 
+             ENDIF
+     
+           ENDDO
+         ENDDO
+       ENDDO
+       ND(0)=NN
    END SUBROUTINE WEIGHTF3_XY_SHA2
    !!--------------------- END WEIGHTF3_XY_SHA -----------------------!!
 
@@ -539,7 +579,7 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
    ZOT=0D0
    ERR=0
 
-   !$acc data copyin(XOT,YOT,ZOT,FSDOM,NLMAX,NFS,XFS,YFS,RIAV)
+   !$acc data copyin(XOT,YOT,ZOT,FSDOM,NLMAX,NFS,XFS,YFS,RIAV,NNN,PHII)
    !$acc parallel loop private(ND,W)
    DO INOD=1,NOT
 
@@ -551,16 +591,17 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
          NN,ND,W,1,I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1,RIAV,&
          ETMP,DR,DR2,WWI)
       
-      !NNN(INOD)=NN
-      !PHII(1:NN,INOD)=PHI(1:NN)
+      NNN(INOD)=NN
+      PHII(1:NN,INOD)=W(1:NN)
    ENDDO
    !$acc end data
 
    !WRITE(9,*),MAXVAL(NNN)
-   !DO I=1,NOT
+   WRITE(9,*),"HELLO"
+   DO I=1,NOT
    !WRITE(9,*),ZOT(I)
-   !   WRITE(9,*),PHII(1:NNN(I),I)
-   !ENDDO
+      WRITE(9,*),PHII(1:NNN(I),I)
+   ENDDO
    !WRITE(9,*),NOT
    WRITE(8,'(" [MSG] EXITING MLPG_GET_ETA")')
    WRITE(8,*)
