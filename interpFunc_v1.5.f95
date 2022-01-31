@@ -582,7 +582,7 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
 
    !$acc data copyin(NOT,XOT,YOT,ZOT,FSDOM,&
    !$acc& NFS,XFS,YFS,NLMAX,RIAV,PLANEID,ERR,PRINTERRMSG,NNN,PHII)
-   !$acc parallel loop private(ND,W,PHI,A,B,PB2,PP2,PT,AINV)
+   !$acc parallel loop private(ND,W,PHI,A,B,PB2,PP2,PT,AINV,B,AA)
    DO INOD=1,NOT
 
       XQ=XOT(INOD)
@@ -594,7 +594,6 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
          ETMP,DR,DR2,WWI)
       
       NNN(INOD)=NN
-      PHII(1:NN,INOD)=W(1:NN)
 
       IF(NN.LE.0)THEN
          IF(PRINTERRMSG.NE.0)THEN
@@ -619,8 +618,20 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
       A(4,4)=1D0
 
       CALL FINDINV4X42(A,AINV,WWI)
+      IF(ABS(WWI).LT.1E-15)THEN
+         IF(PRINTERRMSG.NE.0)THEN
+           PRINT*,"     [ERR] SINGULAR MATRIX A, ADET ",WWI
+           PRINT*,"     [---] LOC ",XQ,YQ,ZQ
+         ENDIF
+         CALL SHEPARDSF_SHA2(PHI,NN,W,NLMAX,I,WWI)
+         GOTO 30
+      ENDIF
+
+      CALL SHAPEFUN_PHI_SHA2(4,NLMAX,NN,AINV,B,PT,AA,PHI,I,J,K)
 
       30 WWI=0D0
+      PHII(1:NN,INOD)=PHI(1:NN)
+      !WRITE(9,*),PHI(1:NN)
       !$acc loop seq
       DO I2=1,NN
          WWI=WWI+PHI(I2)*ZFS(ND(I2))
