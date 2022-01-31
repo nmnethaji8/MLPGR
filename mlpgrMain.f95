@@ -230,7 +230,6 @@ PROGRAM THREED_BREAKINGWAVE
    WRITE(8,*)
    !!---------------------------------------------------!!
 
-   GOTO 10000
    !INITIALISE THE WATER DENSITY AND V AND PRESSURE
    NODN=NODEID(0)
 
@@ -453,6 +452,7 @@ PROGRAM THREED_BREAKINGWAVE
 
       ENDIF
 501   CONTINUE
+GOTO 500
       !!-------------------END REMESHING-------------------!!
 
       DOMBL(1)=MINVAL(COORX(:,1))

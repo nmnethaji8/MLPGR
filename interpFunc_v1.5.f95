@@ -429,7 +429,7 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
 
    !$acc data copyin(NOT,XOT,YOT,ZOT,FSDOM,&
    !$acc& NFS,XFS,YFS,NLMAX,RIAV,PLANEID,ERR,PRINTERRMSG)!,NNN,PHII)
-   !$acc parallel loop gang num_gangs(NOT) vector vector_length(8) private(ND,W,PHI,A,B,PB2,PP2,PT,AINV,B,AA)
+   !$acc parallel loop gang num_gangs(NOT) vector vector_length(4) private(ND,W,PHI,A,B,PB2,PP2,PT,AINV,B,AA)
    DO INOD=1,NOT
 
       XQ=XOT(INOD)
