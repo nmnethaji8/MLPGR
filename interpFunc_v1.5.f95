@@ -548,6 +548,7 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
    USE CUDAFOR
    USE NODELINKMOD
    USE KERNEL
+   USE INTERPNEW
    IMPLICIT NONE
 
    TYPE(NODELINKTYP),MANAGED,INTENT(IN)::FSDOM
@@ -580,7 +581,7 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
    ERR=0
 
    !$acc data copyin(XOT,YOT,ZOT,FSDOM,NLMAX,NFS,XFS,YFS,RIAV,NNN,PHII)
-   !$acc parallel loop private(ND,W)
+   !$acc parallel loop private(ND,W,PHI)
    DO INOD=1,NOT
 
       XQ=XOT(INOD)
@@ -593,11 +594,32 @@ SUBROUTINE MLPG_GET_ETA(FSDOM, NFS, XFS, YFS, ZFS, NOT, XOT, YOT, ZOT, ERR, DDL,
       
       NNN(INOD)=NN
       PHII(1:NN,INOD)=W(1:NN)
+
+      IF(NN.LE.0)THEN
+         IF(PRINTERRMSG.NE.0)THEN
+            PRINT*,"     [ERR] NO NEGH IN MLPG_GET_ETA FOR POI"
+            PRINT*,"     [---] ",XQ,YQ
+         ENDIF
+         ZOT(INOD)=0D0
+         ERR(INOD)=1
+         CYCLE
+      ENDIF
+
+      IF(NN.LE.3)THEN
+         CALL SHEPARDSF_SHA2(PHI,NN,W,NLMAX,I,WWI)
+         GOTO 30
+      ENDIF
+
+      30 WWI=0D0
+      !$acc loop seq
+      DO I2=1,NN
+         WWI=WWI+PHI(I2)*ZFS(ND(I2))
+      ENDDO
+      ZOT(INOD)=WWI
+   
    ENDDO
    !$acc end data
 
-   !WRITE(9,*),MAXVAL(NNN)
-   WRITE(9,*),"HELLO"
    DO I=1,NOT
    !WRITE(9,*),ZOT(I)
       WRITE(9,*),PHII(1:NNN(I),I)
