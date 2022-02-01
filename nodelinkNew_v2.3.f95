@@ -155,7 +155,7 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
    CIRCLE_S_WALL= 4.5D0*DDL !4.5D0*DDL   !DOMAIN OF WALL PARTICLES
 
    !$acc data copyin(NODN,NODEID,NWALLID,CIRCLE_WATER,CIRCLE_WALL,&
-   !$acc& CIRCLE_S_WALL,MLDOM,COORX,COORY,COORZ)
+   !$acc& CIRCLE_S_WALL,MLDOM,COORX,COORY,COORZ,NLINK,DDR,R0,R,CC)
    !$acc parallel loop gang num_gangs(NODN) vector vector_length(16) private(DIS,IN12)
    DO I=1,NODN
       IF(I.LE.NODEID(-2))RIAV=CIRCLE_WATER
@@ -194,6 +194,39 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
          ENDDO
       ENDDO
       CALL SORTBYKEY(IN12(1:KK),DIS(1:KK),KK)
+
+      NLINK(I)%I(1:KK) = IN12(1:KK)
+      
+      NLINK(I)%I(0) = KK
+
+      IF (KK.LT.6) THEN
+         PRINT*,'ERROR IN SORTD',I,KK,NODEID(I)
+      ENDIF
+
+      COFF= 0.25D0 !0.1d0  !0.25D0
+      DS=0D0
+
+      IF(KK.LE.3)THEN
+         DS=DDL
+      ELSEIF(KK.LT.6)THEN
+         DO IX=1,KK
+            DS=DS+DIS(IX)
+         ENDDO
+         DS=1D0*DS/KK
+      ELSE
+         DO IX=1,6
+            DS=DS+DIS(IX)
+         ENDDO
+         DS=1D0*DS/6D0
+      ENDIF
+
+      DDR(I)=DS*(COFF+SCALE)
+
+      R0(I)=DS*COFF
+      R(I)=DS*SCALE
+
+      CC(I)=DDR(I)
+
    ENDDO
    !$acc end data
    
