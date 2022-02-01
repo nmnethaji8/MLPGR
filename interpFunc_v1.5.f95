@@ -73,138 +73,138 @@ CONTAINS
    !!--------------------- END WEIGHTF3_XY_SHA -----------------------!!
 
 !!------------------------- WEIGHTF3_SHA --------------------------!!
-SUBROUTINE WEIGHTF3_SHA(FSDOM,NLMAX,NIN,XIN,YIN,ZIN,XQ,YQ,ZQ,&
-   NN,ND,W,IDWEI,I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1,RIAV,&
-   ETMP,DR,DR2,WWI)
+   SUBROUTINE WEIGHTF3_SHA(FSDOM,NLMAX,NIN,XIN,YIN,ZIN,XQ,YQ,ZQ,&
+      NN,ND,W,IDWEI,I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1,RIAV,&
+      ETMP,DR,DR2,WWI)
 !$acc routine seq
-USE NODELINKMOD
-IMPLICIT NONE
+      USE NODELINKMOD
+      IMPLICIT NONE
 
-TYPE(NODELINKTYP),INTENT(IN)::FSDOM
-INTEGER(KIND=4),INTENT(IN)::NLMAX,NIN,IDWEI
-INTEGER(KIND=4),INTENT(OUT)::NN
-INTEGER(KIND=4),INTENT(OUT)::ND(0:NLMAX)
-REAL(KIND=8),INTENT(IN)::XIN(NIN),YIN(NIN),ZIN(NIN)
-REAL(KIND=8),INTENT(IN)::XQ,YQ,ZQ
-REAL(KIND=8),INTENT(OUT)::W(NLMAX)
+      TYPE(NODELINKTYP),INTENT(IN)::FSDOM
+      INTEGER(KIND=4),INTENT(IN)::NLMAX,NIN,IDWEI
+      INTEGER(KIND=4),INTENT(OUT)::NN
+      INTEGER(KIND=4),INTENT(OUT)::ND(0:NLMAX)
+      REAL(KIND=8),INTENT(IN)::XIN(NIN),YIN(NIN),ZIN(NIN)
+      REAL(KIND=8),INTENT(IN)::XQ,YQ,ZQ
+      REAL(KIND=8),INTENT(OUT)::W(NLMAX)
 
-INTEGER(KIND=4),INTENT(INOUT)::I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1
-REAL(KIND=8),INTENT(INOUT)::RIAV,ETMP,DR,DR2,WWI
+      INTEGER(KIND=4),INTENT(INOUT)::I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1
+      REAL(KIND=8),INTENT(INOUT)::RIAV,ETMP,DR,DR2,WWI
 
-NN=0
-ETMP=DEXP(-(1D0**2))
+      NN=0
+      ETMP=DEXP(-(1D0**2))
 
- !! Z=0 FOR FREE-SURFACE DOMAIN
-DR=0
-CALL FINDCELL(FSDOM,XQ,YQ,ZQ,IX,IY,IZ,IPOS)
+      !! Z=0 FOR FREE-SURFACE DOMAIN
+      DR=0
+      CALL FINDCELL(FSDOM,XQ,YQ,ZQ,IX,IY,IZ,IPOS)
 
-DO IX1=IX-1,IX+1
-   DO IY1=IY-1,IY+1
-      DO IZ1=IZ-1,IZ+1
-         IF((IX1.GE.0.AND.IX1.LT.FSDOM%CELLX).AND.&
-            (IY1.GE.0.AND.IY1.LT.FSDOM%CELLY).AND.&
-            (IZ1.GE.0.AND.IZ1.LT.FSDOM%CELLZ))THEN
+      DO IX1=IX-1,IX+1
+         DO IY1=IY-1,IY+1
+            DO IZ1=IZ-1,IZ+1
+               IF((IX1.GE.0.AND.IX1.LT.FSDOM%CELLX).AND.&
+                  (IY1.GE.0.AND.IY1.LT.FSDOM%CELLY).AND.&
+                  (IZ1.GE.0.AND.IZ1.LT.FSDOM%CELLZ))THEN
 
-            IPOS=IX1+IY1*FSDOM%CELLX+IZ1*FSDOM%CELLY*FSDOM%CELLX
+                  IPOS=IX1+IY1*FSDOM%CELLX+IZ1*FSDOM%CELLY*FSDOM%CELLX
 
-            DO I2=1,FSDOM%CELL(IPOS,0)
-               I=FSDOM%CELL(IPOS,I2)
+                  DO I2=1,FSDOM%CELL(IPOS,0)
+                     I=FSDOM%CELL(IPOS,I2)
 
-               DR=DSQRT((XIN(I)-XQ)**2 + (YIN(I)-YQ)**2 + (ZIN(I)-ZQ)**2)
-               IF(DR.LT.RIAV)THEN
-                  DR2=DR/RIAV
+                     DR=DSQRT((XIN(I)-XQ)**2 + (YIN(I)-YQ)**2 + (ZIN(I)-ZQ)**2)
+                     IF(DR.LT.RIAV)THEN
+                        DR2=DR/RIAV
 
-                  IF(IDWEI.EQ.1)THEN
-                     WWI=(DEXP(-(DR2**2))-ETMP)/(1D0-ETMP)
-                  ELSE
-                     WWI=1D0-6D0*(DR2)**2+8D0*(DR2)**3-3D0*(DR2)**4
-                  ENDIF
+                        IF(IDWEI.EQ.1)THEN
+                           WWI=(DEXP(-(DR2**2))-ETMP)/(1D0-ETMP)
+                        ELSE
+                           WWI=1D0-6D0*(DR2)**2+8D0*(DR2)**3-3D0*(DR2)**4
+                        ENDIF
 
-                  IF(WWI.GT.0D0)THEN
+                        IF(WWI.GT.0D0)THEN
+                           NN=NN+1
+                           IF(NN.GT.NLMAX)THEN
+                              PRINT*," [ERR] INCREASE NLMAX IN WEIGHTF3_SHA"
+                           ENDIF
+                           ND(NN)=I
+                           W(NN)=WWI
+                        ENDIF
+                     ENDIF
+                  ENDDO
+               ENDIF
+            ENDDO
+         ENDDO
+      ENDDO
+      ND(0)=NN
+   END SUBROUTINE WEIGHTF3_SHA
+!!----------------------- END WEIGHTF3_SHA ------------------------!!
+
+!!------------------------- WEIGHTF4_SHA --------------------------!!
+   ATTRIBUTES(DEVICE) SUBROUTINE WEIGHTF4_SHA(FSDOM, LNODE, NLMAX, NIN, NODEID, NWALLID, &
+      XIN, YIN, ZIN, XQ, YQ, ZQ, NN, ND, W, IDWEI, I, I2, IX, IY, IZ, &
+      IPOS, IX1, IY1, IZ1, RIAV, ETMP, DR, DR2, WWI)
+   USE NODELINKMOD
+   IMPLICIT NONE
+
+   TYPE(NODELINKTYP),INTENT(IN)::FSDOM
+   INTEGER(KIND=4),INTENT(IN)::NLMAX,NIN,IDWEI, LNODE
+   INTEGER(KIND=4),INTENT(IN)::NODEID(-7:NIN), NWALLID(LNODE,4)
+   INTEGER(KIND=4),INTENT(OUT)::NN,ND(0:NLMAX)
+   REAL(KIND=8),INTENT(IN)::XIN(NIN),YIN(NIN),ZIN(NIN)
+   REAL(KIND=8),INTENT(IN)::XQ,YQ,ZQ
+   REAL(KIND=8),INTENT(OUT)::W(NLMAX)
+
+   INTEGER(KIND=4),INTENT(INOUT)::I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1
+   REAL(KIND=8),INTENT(INOUT)::RIAV,ETMP,DR,DR2,WWI
+
+   NN=0
+   ETMP=DEXP(-(1D0**2))
+
+   CALL FINDCELL(FSDOM,XQ,YQ,ZQ,IX,IY,IZ,IPOS)
+
+   DO IX1=IX-1,IX+1
+      DO IY1=IY-1,IY+1
+         DO IZ1=IZ-1,IZ+1
+
+            IF((IX1.GE.0.AND.IX1.LT.FSDOM%CELLX).AND.&
+               (IY1.GE.0.AND.IY1.LT.FSDOM%CELLY).AND.&
+               (IZ1.GE.0.AND.IZ1.LT.FSDOM%CELLZ))THEN
+
+               IPOS=IX1+IY1*FSDOM%CELLX+IZ1*FSDOM%CELLY*FSDOM%CELLX
+
+               DO I2=1,FSDOM%CELL(IPOS,0)
+                  I=FSDOM%CELL(IPOS,I2)
+
+                  !! NO GHOST PARTICLES
+                  IF( (NODEID(I).LT.0) .OR. (NODEID(I).GT.10) ) CYCLE
+
+                  !! NO DISABLED PARTICLES
+                  IF( (NWALLID(I,2).EQ.-10) ) CYCLE
+
+                  DR=DSQRT((XIN(I)-XQ)**2 + (YIN(I)-YQ)**2 + (ZIN(I)-ZQ)**2)
+                  IF(DR.LT.RIAV)THEN
+                     DR2=DR/RIAV
+
+                     IF(IDWEI.EQ.1)THEN
+                        WWI=(DEXP(-(DR2**2))-ETMP)/(1D0-ETMP)
+                     ELSE
+                        WWI=1D0-6D0*(DR2)**2+8D0*(DR2)**3-3D0*(DR2)**4
+                     ENDIF
+
+                     IF(WWI.LE.0D0)CYCLE
                      NN=NN+1
                      IF(NN.GT.NLMAX)THEN
                         PRINT*," [ERR] INCREASE NLMAX IN WEIGHTF3_SHA"
+                        STOP
                      ENDIF
                      ND(NN)=I
                      W(NN)=WWI
                   ENDIF
-               ENDIF
-            ENDDO
-         ENDIF
+               ENDDO
+            ENDIF
+         ENDDO
       ENDDO
    ENDDO
-ENDDO
-ND(0)=NN
-END SUBROUTINE WEIGHTF3_SHA
-!!----------------------- END WEIGHTF3_SHA ------------------------!!
-
-!!------------------------- WEIGHTF4_SHA --------------------------!!
-ATTRIBUTES(DEVICE) SUBROUTINE WEIGHTF4_SHA(FSDOM, LNODE, NLMAX, NIN, NODEID, NWALLID, &
-   XIN, YIN, ZIN, XQ, YQ, ZQ, NN, ND, W, IDWEI, I, I2, IX, IY, IZ, &
-   IPOS, IX1, IY1, IZ1, RIAV, ETMP, DR, DR2, WWI)
-USE NODELINKMOD
-IMPLICIT NONE
-
-TYPE(NODELINKTYP),INTENT(IN)::FSDOM
-INTEGER(KIND=4),INTENT(IN)::NLMAX,NIN,IDWEI, LNODE
-INTEGER(KIND=4),INTENT(IN)::NODEID(-7:NIN), NWALLID(LNODE,4)
-INTEGER(KIND=4),INTENT(OUT)::NN,ND(0:NLMAX)
-REAL(KIND=8),INTENT(IN)::XIN(NIN),YIN(NIN),ZIN(NIN)
-REAL(KIND=8),INTENT(IN)::XQ,YQ,ZQ
-REAL(KIND=8),INTENT(OUT)::W(NLMAX)
-
-INTEGER(KIND=4),INTENT(INOUT)::I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1
-REAL(KIND=8),INTENT(INOUT)::RIAV,ETMP,DR,DR2,WWI
-
-NN=0
-ETMP=DEXP(-(1D0**2))
-
-CALL FINDCELL(FSDOM,XQ,YQ,ZQ,IX,IY,IZ,IPOS)
-
-DO IX1=IX-1,IX+1
-   DO IY1=IY-1,IY+1
-      DO IZ1=IZ-1,IZ+1
-
-         IF((IX1.GE.0.AND.IX1.LT.FSDOM%CELLX).AND.&
-            (IY1.GE.0.AND.IY1.LT.FSDOM%CELLY).AND.&
-            (IZ1.GE.0.AND.IZ1.LT.FSDOM%CELLZ))THEN
-
-            IPOS=IX1+IY1*FSDOM%CELLX+IZ1*FSDOM%CELLY*FSDOM%CELLX
-
-            DO I2=1,FSDOM%CELL(IPOS,0)
-               I=FSDOM%CELL(IPOS,I2)
-
-               !! NO GHOST PARTICLES
-               IF( (NODEID(I).LT.0) .OR. (NODEID(I).GT.10) ) CYCLE
-
-               !! NO DISABLED PARTICLES
-               IF( (NWALLID(I,2).EQ.-10) ) CYCLE
-
-               DR=DSQRT((XIN(I)-XQ)**2 + (YIN(I)-YQ)**2 + (ZIN(I)-ZQ)**2)
-               IF(DR.LT.RIAV)THEN
-                  DR2=DR/RIAV
-
-                  IF(IDWEI.EQ.1)THEN
-                     WWI=(DEXP(-(DR2**2))-ETMP)/(1D0-ETMP)
-                  ELSE
-                     WWI=1D0-6D0*(DR2)**2+8D0*(DR2)**3-3D0*(DR2)**4
-                  ENDIF
-
-                  IF(WWI.LE.0D0)CYCLE
-                  NN=NN+1
-                  IF(NN.GT.NLMAX)THEN
-                     PRINT*," [ERR] INCREASE NLMAX IN WEIGHTF3_SHA"
-                     STOP
-                  ENDIF
-                  ND(NN)=I
-                  W(NN)=WWI
-               ENDIF
-            ENDDO
-         ENDIF
-      ENDDO
-   ENDDO
-ENDDO
-ND(0)=NN
+   ND(0)=NN
 
 END SUBROUTINE WEIGHTF4_SHA
 !!------------------------- WEIGHTF4_SHA --------------------------!!
@@ -417,81 +417,81 @@ SUBROUTINE MLPG_GET_UP(DOMIN,NIN,XIN,YIN,ZIN,UIN,VIN,WIN,PIN,&
    REAL(KIND=8),MANAGED,INTENT(OUT)::UOT(NOT),VOT(NOT),WOT(NOT),POT(NOT)
 
    INTEGER(KIND=4)::INOD,ND(0:NLMAX),NN
-  INTEGER(KIND=4)::I,J,K,I2,NI
-  INTEGER(KIND=4)::IX,IY,IZ,IPOS,IX1,IY1,IZ1
-  REAL(KIND=8)::PHI(NLMAX),W(NLMAX),B(4,NLMAX)
-  REAL(KIND=8)::A(4,4),AINV(4,4),PT(4)
-  REAL(KIND=8)::PB2(4),PP2(4,4)
-  REAL(KIND=8)::XQ,YQ,ZQ,AA(4,NLMAX),PINT
-  REAL(KIND=8)::RIAV,DR,DR2,ETMP,WWI
-  REAL(KIND=8)::PTMP,UTMP,VTMP,WTMP
-  REAL(KIND=8),ALLOCATABLE::AAA(:,:,:)
+   INTEGER(KIND=4)::I,J,K,I2,NI
+   INTEGER(KIND=4)::IX,IY,IZ,IPOS,IX1,IY1,IZ1
+   REAL(KIND=8)::PHI(NLMAX),W(NLMAX),B(4,NLMAX)
+   REAL(KIND=8)::A(4,4),AINV(4,4),PT(4)
+   REAL(KIND=8)::PB2(4),PP2(4,4)
+   REAL(KIND=8)::XQ,YQ,ZQ,AA(4,NLMAX),PINT
+   REAL(KIND=8)::RIAV,DR,DR2,ETMP,WWI
+   REAL(KIND=8)::PTMP,UTMP,VTMP,WTMP
+   REAL(KIND=8),ALLOCATABLE::AAA(:,:,:)
 
-  WRITE(8,'(" [MSG] ENTERING MLPG_GET_UP")')
+   WRITE(8,'(" [MSG] ENTERING MLPG_GET_UP")')
 
-  RIAV=2.1D0*DDL
+   RIAV=2.1D0*DDL
 
-  !$acc data copyin(NLMAX,RIAV,NIN,&
-  !$acc&  XIN,YIN,ZIN,UIN,VIN,WIN,PIN,NOT,XOT,YOT,ZOT,UOT,&
-  !$acc&  VOT,WOT,POT,DOMIN)
-  !$acc parallel loop gang num_gangs(NOT) vector vector_length(1) private(ND,W,PHI,A,B,PB2,PP2,PT,AINV,AA)
-  DO INOD=1,NOT    
+   !$acc data copyin(NLMAX,RIAV,NIN,&
+   !$acc&  XIN,YIN,ZIN,UIN,VIN,WIN,PIN,NOT,XOT,YOT,ZOT,UOT,&
+   !$acc&  VOT,WOT,POT,DOMIN)
+   !$acc parallel loop gang num_gangs(NOT) vector vector_length(1) private(ND,W,PHI,A,B,PB2,PP2,PT,AINV,AA)
+   DO INOD=1,NOT
 
-    XQ=XOT(INOD)
-    YQ=YOT(INOD)
-    ZQ=ZOT(INOD)
+      XQ=XOT(INOD)
+      YQ=YOT(INOD)
+      ZQ=ZOT(INOD)
 
-    CALL WEIGHTF3_SHA(DOMIN,NLMAX,NIN,XIN,YIN,ZIN,XQ,YQ,ZQ,&
-      NN,ND,W,1,I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1,RIAV,&
-      ETMP,DR,DR2,WWI)
+      CALL WEIGHTF3_SHA(DOMIN,NLMAX,NIN,XIN,YIN,ZIN,XQ,YQ,ZQ,&
+         NN,ND,W,1,I,I2,IX,IY,IZ,IPOS,IX1,IY1,IZ1,RIAV,&
+         ETMP,DR,DR2,WWI)
 
-   IF(NN.LE.0)THEN
-      PRINT*,"     [ERR] NO NEGH IN MLPG_GET_UP FOR POI"
-      PRINT*,"     [---] ",XQ,YQ,ZQ
-      UOT(INOD)=0D0
-      VOT(INOD)=0D0
-      WOT(INOD)=0D0
-      POT(INOD)=0D0
-      CYCLE
-    ENDIF
+      IF(NN.LE.0)THEN
+         PRINT*,"     [ERR] NO NEGH IN MLPG_GET_UP FOR POI"
+         PRINT*,"     [---] ",XQ,YQ,ZQ
+         UOT(INOD)=0D0
+         VOT(INOD)=0D0
+         WOT(INOD)=0D0
+         POT(INOD)=0D0
+         CYCLE
+      ENDIF
 
-    IF(NN.LE.3)THEN
-      CALL SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WWI)
-      GOTO 30
-    ENDIF
+      IF(NN.LE.3)THEN
+         CALL SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WWI)
+         GOTO 30
+      ENDIF
 
-    CALL SHAPPARA_R_SHA(NIN,4,NLMAX,A,B,NN,ND,W,&
-      XIN,YIN,ZIN,I,NI,J,K,PB2,PP2,WWI)
+      CALL SHAPPARA_R_SHA(NIN,4,NLMAX,A,B,NN,ND,W,&
+         XIN,YIN,ZIN,I,NI,J,K,PB2,PP2,WWI)
 
       CALL BASEFUN_SHA(4,PT,XQ,YQ,ZQ)
 
-      CALL FINDINV4X4(A,AINV,WWI)    
-    IF(ABS(WWI).LT.1E-15)THEN
-      PRINT*,"     [ERR] SINGULAR MATRIX A, ADET ",WWI
-      PRINT*,"     [---] LOC ",XQ,YQ,ZQ
-      CALL SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WWI)
-      GOTO 30
-    ENDIF
+      CALL FINDINV4X4(A,AINV,WWI)
+      IF(ABS(WWI).LT.1E-15)THEN
+         PRINT*,"     [ERR] SINGULAR MATRIX A, ADET ",WWI
+         PRINT*,"     [---] LOC ",XQ,YQ,ZQ
+         CALL SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WWI)
+         GOTO 30
+      ENDIF
 
-    CALL SHAPEFUN_PHI_SHA(4,NLMAX,NN,AINV,B,PT,AA,PHI,I,J,K)
+      CALL SHAPEFUN_PHI_SHA(4,NLMAX,NN,AINV,B,PT,AA,PHI,I,J,K)
 
-    30  UTMP=0D0
-    VTMP=0D0
-    WTMP=0D0
-    PTMP=0D0
-    !$acc loop seq
-    DO I2=1,NN
-      UTMP=UTMP+PHI(I2)*UIN(ND(I2))
-      VTMP=VTMP+PHI(I2)*VIN(ND(I2))
-      WTMP=WTMP+PHI(I2)*WIN(ND(I2))
-      PTMP=PTMP+PHI(I2)*PIN(ND(I2))
-    ENDDO
-    UOT(INOD)=UTMP
-    VOT(INOD)=VTMP
-    WOT(INOD)=WTMP
-    POT(INOD)=PTMP
-  ENDDO
-  !$acc end data
+30    UTMP=0D0
+      VTMP=0D0
+      WTMP=0D0
+      PTMP=0D0
+      !$acc loop seq
+      DO I2=1,NN
+         UTMP=UTMP+PHI(I2)*UIN(ND(I2))
+         VTMP=VTMP+PHI(I2)*VIN(ND(I2))
+         WTMP=WTMP+PHI(I2)*WIN(ND(I2))
+         PTMP=PTMP+PHI(I2)*PIN(ND(I2))
+      ENDDO
+      UOT(INOD)=UTMP
+      VOT(INOD)=VTMP
+      WOT(INOD)=WTMP
+      POT(INOD)=PTMP
+   ENDDO
+   !$acc end data
 
 END SUBROUTINE MLPG_GET_UP
 !!------------------------ END MLPG_GET_UP ------------------------!!

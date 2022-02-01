@@ -422,7 +422,7 @@ PROGRAM THREED_BREAKINGWAVE
          CALL MLPG_GET_UP(MLDOM,I,CM%CX(1:I),CM%CY(1:I),CM%CZ(1:I), &
             CM%UX(1:I),CM%UY(1:I),CM%UZ(1:I),CM%PR(1:I), &
             J,MM%CX(1:J),MM%CY(1:J),MM%CZ(1:J), &
-            MM%UX(1:J),MM%UY(1:J),MM%UZ(1:J),MM%PR(1:J),DDL,100)
+            MM%UX(1:J),MM%UY(1:J),MM%UZ(1:J),MM%PR(1:J),DDL,70)
 
          DO I = 1, MM%NP
             IX = MMTOIM(I)
