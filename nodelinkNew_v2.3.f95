@@ -245,7 +245,7 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
 
    !$acc data copyin(NODN,NODEID,NWALLID,CIRCLE_WATER,CIRCLE_WALL,&
    !$acc& CIRCLE_S_WALL,MLDOM,COORX,COORY,COORZ)
-   !$acc parallel loop 
+   !$acc parallel loop private(DIS,IN12)
    DO I=1,NODN
       IF(I.LE.NODEID(-2))RIAV=CIRCLE_WATER
       IF(I.GT.NODEID(-2))RIAV=CIRCLE_WALL
@@ -256,6 +256,32 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
       CALL FINDCELL(MLDOM,COORX(I),COORY(I),COORZ(I),&
       IX,IY,IZ,IPOS)
       KK=0
+      DIS=0D0
+      IN12=0
+
+      DO IX1=IX-1,IX+1
+         DO IY1=IY-1,IY+1
+            DO IZ1=IZ-1,IZ+1
+               IF((IX1.GE.0.AND.IX1.LT.MLDOM%CELLX).AND.&
+                  (IY1.GE.0.AND.IY1.LT.MLDOM%CELLY).AND.&
+                  (IZ1.GE.0.AND.IZ1.LT.MLDOM%CELLZ))THEN
+
+                  IPOS=IX1+IY1*MLDOM%CELLX+IZ1*MLDOM%CELLY*MLDOM%CELLX
+                  DO IK=1,MLDOM%CELL(IPOS,0)
+                     IN=MLDOM%CELL(IPOS,IK)
+                     IF(IN.NE.I)THEN
+                        DR=DSQRT((COORX(IN)-COORX(I))**2 +(COORY(IN)-COORY(I))**2 +(COORZ(IN)-COORZ(I))**2)
+                        IF(DR.GT.RIAV) CYCLE
+                        KK=KK+1
+                        IF(KK.GT.IDSZ)PRINT*," [ERR] INCREASE IDSZ"
+                        IN12(KK)=IN
+                        DIS(KK)=DR
+                     ENDIF
+                  ENDDO
+               ENDIF
+            ENDDO
+         ENDDO
+      ENDDO
 
    ENDDO
    !$acc end data
