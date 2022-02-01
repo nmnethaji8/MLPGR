@@ -156,7 +156,7 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
 
    !$acc data copyin(NODN,NODEID,NWALLID,CIRCLE_WATER,CIRCLE_WALL,&
    !$acc& CIRCLE_S_WALL,MLDOM,COORX,COORY,COORZ,NLINK,DDR,R0,R,CC)
-   !$acc parallel loop gang num_gangs(NODN) vector vector_length(16) private(DIS,IN12)
+   !$acc parallel loop gang num_gangs(NODN) vector vector_length(32) private(DIS,IN12)
    DO I=1,NODN
       IF(I.LE.NODEID(-2))RIAV=CIRCLE_WATER
       IF(I.GT.NODEID(-2))RIAV=CIRCLE_WALL
