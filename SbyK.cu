@@ -6,7 +6,8 @@
 using namespace std;
 
 extern "C"
-{
+{  
+   #pragma acc routine seq
    __device__ void SORTBYKEY_(int *A, double *B, int N)
    {
       /*printf("A values are\n");
