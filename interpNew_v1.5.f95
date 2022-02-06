@@ -1063,7 +1063,7 @@ IMPLICIT NONE
 
   !$acc data copyin(NODEID,NWALLID,R0,R,CC,&
   !$acc& NLINK,ROU,DRINT,LNODE,NODN,NLMAX,MBA,KW,COORX,COORY,COORZ)
-  !$acc parallel loop gang num_gangs(NODEID(-2)) vector vector_length(1) private(UINT,VINT,WINT,ND,W,PHI,A,B,PB2,PP2) firstprivate(ND2,WORK)
+  !$acc parallel loop gang num_gangs(NODEID(-2)) vector vector_length(1) private(UINT,VINT,WINT,ND,W,PHI,A,B,PB2,PP2,PT,AINV) firstprivate(ND2,WORK)
   DO INOD=1,NODEID(-2)
 
    IF(NWALLID(INOD,3).EQ.9)CYCLE
@@ -1108,6 +1108,21 @@ IMPLICIT NONE
 
        CALL SHAPPARA_R_SHA(LNODE,MBA,NLMAX,A,B,NN,ND,W,&
         COORX,COORY,COORZ,I,NI,J,K,PB2,PP2,WWI)
+
+      CALL BASEFUN_SHA(MBA,PT,XINT,YINT,ZINT)
+
+      IF(MBA.EQ.4)THEN
+         CALL FINDINV4X4(A,AINV,WWI)
+         IF(ABS(WWI).LT.1E-15)THEN
+           PRINT*,"     [ERR] SINGULAR MATRIX A, ADET ",WWI
+           PRINT*,"     [---] LOC ",XQ,YQ,ZQ
+           CALL SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WWI)
+           GOTO 30
+         ENDIF
+       ELSE
+         PRINT*," [ERR] FINDINV NOT CODED FOR MBA =",MBA
+         STOP
+       ENDIF
 
       30    CALL STIFFNESS_T1_SHA(NLMAX,4*NLMAX,WORK,NN,ND,NN2,ND2,PHI,1/6D0)
 
