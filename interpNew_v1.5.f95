@@ -1062,8 +1062,10 @@ IMPLICIT NONE
   DRINT(6,:)=(/0D0, 0D0, -1D0/)
 
   !$acc data copyin(NODEID,NWALLID,R0,R,CC,&
-  !$acc& NLINK,ROU,DRINT,LNODE,NODN,NLMAX,MBA,KW,COORX,COORY,COORZ)
-  !$acc parallel loop gang num_gangs(NODEID(-2)) vector vector_length(1) private(UINT,VINT,WINT,ND,W,PHI,A,B,PB2,PP2,PT,AINV) firstprivate(ND2,WORK)
+  !$acc& NLINK,ROU,DRINT,LNODE,NODN,NLMAX,MBA,KW,COORX,COORY,COORZ,&
+  !$acc& PI,UX,UY,UZ)
+  !$acc parallel loop gang num_gangs(NODEID(-2)) vector vector_length(1) private(UINT,&
+  !$acc& VINT,WINT,ND,W,PHI,A,B,PB2,PP2,PT,AINV,AA) firstprivate(ND2,WORK)
   DO INOD=1,NODEID(-2)
 
    IF(NWALLID(INOD,3).EQ.9)CYCLE
@@ -1124,9 +1126,17 @@ IMPLICIT NONE
          STOP
        ENDIF
 
+       CALL SHAPEFUN_PHI_SHA(MBA,NLMAX,NN,AINV,B,PT,AA,PHI,I,J,K)
+
       30    CALL STIFFNESS_T1_SHA(NLMAX,4*NLMAX,WORK,NN,ND,NN2,ND2,PHI,1/6D0)
 
-
+       !! VELOCITY AT INTEGRATION POINTS
+      DO I2=1,NN
+         I=ND(I2)
+         UINT(INTI)=UINT(INTI)+PHI(I2)*UX(I,2)
+         VINT(INTI)=VINT(INTI)+PHI(I2)*UY(I,2)
+         WINT(INTI)=WINT(INTI)+PHI(I2)*UZ(I,2)
+       ENDDO
    ENDDO
 
   ENDDO
