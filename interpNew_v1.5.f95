@@ -1069,7 +1069,7 @@ IMPLICIT NONE
 
   !$acc data copyin(NODEID,NWALLID,R0,R,CC,&
   !$acc& NLINK,ROU,DRINT,LNODE,NODN,NLMAX,MBA,KW,COORX,COORY,COORZ,&
-  !$acc& PI,UX,UY,UZ,LINKTAB,SKK,IVV,FB)
+  !$acc& PI,DT,UX,UY,UZ,LINKTAB,SKK,IVV,FB)
   !$acc parallel loop gang num_gangs(NODEID(-2)) vector vector_length(1) private(UINT,&
   !$acc& VINT,WINT,ND,W,PHI,A,B,PB2,PP2,PT,AINV,AA) firstprivate(ND2,WORK)
   DO INOD=1,NODEID(-2)
@@ -1208,6 +1208,29 @@ IMPLICIT NONE
       ENDIF
     ENDDO
 
+    IF(K+1.GE.IVV(0))THEN
+      PRINT*," [ERR] ERROR IN STORAGE, INCREASE IVV(0)"
+      STOP
+    ENDIF
+    IF (K.GT.NLMAX)THEN
+      PRINT*," [ERR] ERROR IN STORAGE, INCREASE NLMAXN"
+      STOP
+    ENDIF
+
+    IVV(INOD)=K+1
+    CALL SEARCH(INOD,J,ND2(1:NN2),NN2)
+    IF(J.NE.0)THEN
+      LINKTAB((INOD-1)*IVV(0)+K+1)=INOD
+      SKK((INOD-1)*IVV(0)+K+1)=WORK(J)
+      WORK(J)=0D0
+    ENDIF
+
+    !! RHS
+    TMPR=R0I*PI/3D0*(UINT(1)+VINT(2)-UINT(3)-VINT(4)+WINT(5)-WINT(6))
+    FB(INOD)=-ROUI*TMPR/(4D0*PI*DT)
+
+    ND2=0
+
   ENDDO
   !$acc end data
 
@@ -1218,7 +1241,7 @@ IMPLICIT NONE
 
     J=NNN(INOD)
     !WRITE(9,"(300I7)"),LINKTAB((INOD-1)*IVV(0)+1:(INOD-1)*IVV(0)+IVV(INOD))
-    WRITE(9,*),PHII(1:J,INOD)
+    WRITE(9,*),SKK((INOD-1)*IVV(0)+1:(INOD-1)*IVV(0)+IVV(INOD))
   ENDDO
 END SUBROUTINE FILL_MATRIX_SHA
 !!---------------------- END FILL_MATRIX_SHA ----------------------!!
