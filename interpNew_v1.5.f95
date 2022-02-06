@@ -1155,6 +1155,19 @@ IMPLICIT NONE
    NNN(INOD)=NN 
    PHII(1:NN,INOD)=W(1:NN)
 
+   IF (NN.LE.0) THEN
+      !WRITE(8,*)'WARNING: NO NODE NEAR THE POINT'
+      !WRITE(8,*)'SHAPE FUNCTION ASSIGNED 1'
+      NN=1
+      ND(0)=1
+      W(1)=1.0D0
+      ND(1)=INOD
+      PHI(1)=1.0D0
+      GOTO 31
+    ENDIF   
+
+    31  CALL STIFFNESS_T1_SHA(NLMAX,4*NLMAX,WORK,NN,ND,NN2,ND2,PHI,-1D0)
+
   ENDDO
   !$acc end data
 
