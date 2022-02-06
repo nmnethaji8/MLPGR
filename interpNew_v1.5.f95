@@ -1056,9 +1056,6 @@ IMPLICIT NONE
   PHII=0D0
 
   PI=ATAN(1D0)*4D0
-  ND2=0
-  NN2=0
-  WORK=0D0
 
   DRINT(1,:)=(/1D0, 0D0, 0D0/)
   DRINT(2,:)=(/0D0, 1D0, 0D0/)
@@ -1070,13 +1067,17 @@ IMPLICIT NONE
   !$acc data copyin(NODEID,NWALLID,R0,R,CC,&
   !$acc& NLINK,ROU,DRINT,LNODE,NODN,NLMAX,MBA,KW,COORX,COORY,COORZ,&
   !$acc& PI,DT,UX,UY,UZ,LINKTAB,SKK,IVV,FB)
-  !$acc parallel loop gang num_gangs(NODEID(-2)) vector vector_length(1) private(UINT,&
-  !$acc& VINT,WINT,ND,W,PHI,A,B,PB2,PP2,PT,AINV,AA) firstprivate(ND2,WORK)
+  !$acc parallel loop gang num_gangs(NODEID(-2)) vector vector_length(2) private(UINT,&
+  !$acc& VINT,WINT,ND,W,PHI,A,B,PB2,PP2,PT,AINV,AA,ND2,WORK)
   DO INOD=1,NODEID(-2)
 
    IF(NWALLID(INOD,3).EQ.9)CYCLE
    IF((NODEID(INOD).NE.0).OR.(NWALLID(INOD,1).EQ.4) &
      .OR.(NWALLID(INOD,2).EQ.-10))CYCLE
+
+   ND2=0
+   NN2=0
+   WORK=0D0
 
    R0I=R0(INOD)
    XQ=COORX(INOD)
@@ -1190,9 +1191,6 @@ IMPLICIT NONE
     CALL SHAPEFUN_PHI_SHA(MBA,NLMAX,NN,AINV,B,PT,AA,PHI,I,J,K)
 
     31  CALL STIFFNESS_T1_SHA(NLMAX,4*NLMAX,WORK,NN,ND,NN2,ND2,PHI,-1D0)
-
-    NNN(INOD)=NN2
-    PHII(1:NN2,INOD)=WORK(1:NN2)
     
     K=0
     !$acc loop
@@ -1228,12 +1226,6 @@ IMPLICIT NONE
     !! RHS
     TMPR=R0I*PI/3D0*(UINT(1)+VINT(2)-UINT(3)-VINT(4)+WINT(5)-WINT(6))
     FB(INOD)=-ROUI*TMPR/(4D0*PI*DT)
-
-    ND2=0
-    WORK=0D0
-    ND=0
-    NN=0
-    NN2=0
 
   ENDDO
   !$acc end data
