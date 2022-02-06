@@ -1062,8 +1062,8 @@ IMPLICIT NONE
   DRINT(6,:)=(/0D0, 0D0, -1D0/)
 
   !$acc data copyin(NODEID,NWALLID,R0,R,CC,&
-  !$acc& NLINK,ROU,DRINT,LNODE,NODN,NLMAX,KW,COORX,COORY,COORZ)
-  !$acc parallel loop gang num_gangs(NODEID(-2)) vector vector_length(1) private(UINT,VINT,WINT,ND,W,PHI) firstprivate(ND2,WORK)
+  !$acc& NLINK,ROU,DRINT,LNODE,NODN,NLMAX,MBA,KW,COORX,COORY,COORZ)
+  !$acc parallel loop gang num_gangs(NODEID(-2)) vector vector_length(1) private(UINT,VINT,WINT,ND,W,PHI,A,B,PB2,PP2) firstprivate(ND2,WORK)
   DO INOD=1,NODEID(-2)
 
    IF(NWALLID(INOD,3).EQ.9)CYCLE
@@ -1100,6 +1100,14 @@ IMPLICIT NONE
         PHI(1)=1.0D0
         GOTO 30
       ENDIF
+
+      IF(NN.LE.3)THEN
+         CALL SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WWI)        
+         GOTO 30
+       ENDIF
+
+       CALL SHAPPARA_R_SHA(LNODE,MBA,NLMAX,A,B,NN,ND,W,&
+        COORX,COORY,COORZ,I,NI,J,K,PB2,PP2,WWI)
 
       30    CALL STIFFNESS_T1_SHA(NLMAX,4*NLMAX,WORK,NN,ND,NN2,ND2,PHI,1/6D0)
 
