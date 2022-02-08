@@ -74,7 +74,7 @@ PROGRAM THREED_BREAKINGWAVE
 
    OPEN(UNIT=8, FILE="mlpgTerOut.txt")
    OPEN(UNIT=9, FILE=" /home/vsriram/MATLAB-Drive/output2.txt")
-   OPEN(UNIT=19, FILE=" /home/vsriram/MATLAB-Drive/output4.txt")
+   !OPEN(UNIT=19, FILE=" /home/vsriram/MATLAB-Drive/output4.txt")
 
    WRITE(8,*) '*****************************************************'
    WRITE(8,*) '3D WATER WAVE PROBLEM WITH MLPGR METHOD'
@@ -622,8 +622,6 @@ PROGRAM THREED_BREAKINGWAVE
          NWALLID,COORX(:,2),COORY(:,2), &
          COORZ(:,2),50,MBAS,KW,R1,DDR,DT,FB)
 
-      GOTO 500
-
       CALL SYSTEM_CLOCK(CPUT%TI(6))
       WRITE(8,'(" [TIM] TOTAL TIME FILLING MATRIX IS ",F15.6)'), &
          1D0*(CPUT%TI(6)-CPUT%TI(5))/CPUT%SYSRATE
@@ -642,6 +640,8 @@ PROGRAM THREED_BREAKINGWAVE
       WRITE(8,'(" [TIM] TIME OF PRESSURE_SOLVER IS ",F15.6)'), &
          1D0*(CPUT%TI(6)-CPUT%TI(5))/CPUT%SYSRATE
       WRITE(8,*)
+
+      GOTO 500
 
       !CHANGE IT INTO REAL PRESSURE P=P-(Z-D)
       DO I=1,NODEID(0)
