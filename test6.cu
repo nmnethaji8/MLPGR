@@ -24,34 +24,31 @@ extern "C"
       // create an empty sparse matrix structure (CSR format)
       cusp::csr_matrix<int, ValueType, MemorySpace> A(n, m, nnz);
       
-      vector<int>ro(n+1);
-      std::copy(rowoffset, rowoffset + n + 1, ro.begin());
+      vector<int>ro(rowoffset, rowoffset + n + 1);
 
-      /*// cout << "Row offset\n";
+      /*cout << "Row offset\n";
       for (int i = 0; i <= n; i++)
       {
          A.row_offsets[i] = rowoffset[i];
-         // cout << rowoffset[i] << " ";
-      }*/
+         //cout << rowoffset[i] << " ";
+      }
+      cout << "\n*";*/
 
-      vector<int>co(nnz);
-      std::copy(col, col + nnz, co.begin());
+      vector<int>co(col, col + nnz);
 
-      vector<double>va(nnz);
-      std::copy(val, val + nnz, va.begin());
+      vector<double>va(val, val + nnz);
 
-      vector<double>rh(n);
-      std::copy(rhs, rhs + n, rh.begin());
+      vector<double>rh(rhs, rhs + n);
 
       A.row_offsets=ro;
       A.column_indices=co;
       A.values=va;
 
-      /*// cout << "cloumn and val\n";
-      for (int i = 0; i < nnz; i++)
+      /*cout << "cloumn and val\n";
+      for (int i = 0; i < n; i++)
       {
-         A.column_indices[i] = col[i];
-         A.values[i] = val[i];
+         //A.column_indices[i] = col[i];
+         //A.values[i] = val[i];
 
          // cout << col[i] << " " << val[i] << "\n";
       }*/
@@ -60,9 +57,8 @@ extern "C"
 
       // allocate storage for solution (x) and right hand side (b)
       cusp::array1d<ValueType, MemorySpace> X(A.num_rows, 0);
-      cusp::array1d<ValueType, MemorySpace> B(A.num_rows, 0);
-
-      B=rh;
+      cusp::array1d<ValueType, MemorySpace> B(rh);
+      
       /*for (int i = 0; i < n; i++)
       {
          B[i] = rhs[i];
@@ -102,7 +98,7 @@ extern "C"
 
       mlpgTerOut.close();
 
-      cusp::array1d<ValueType, cusp::host_memory> X_h(A.num_rows, 0);
+      cusp::array1d<ValueType, cusp::host_memory> X_h(A.num_rows);
 
       X_h=X;
       #pragma omp parallel for
