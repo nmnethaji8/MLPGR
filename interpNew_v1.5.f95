@@ -1339,9 +1339,9 @@ SUBROUTINE PRESSURE_SMOOTH_SHA(LNODE,NODN,NODEID,NWALLID,&
 
    IDWEI=1 !! EXPONENT WEIGHT FUNCTION
 
-   !$acc data copyin(NODEID,NWALLID,P,KW,&
+   !$acc data copyin(NODEID,NWALLID,P,PTMP,KW,&
    !$acc& R,R0,CC,COORX,COORY,COORZ,NLINK,LNODE,NLMAX,NODN,IDWEI)
-   !$acc parallel loop gang num_gangs(NODEID(-1)) vector vector_length(1) private(ND,W,ILINK)
+   !$acc parallel loop gang num_gangs(NODEID(-1)) vector vector_length(1) private(ND,W,ILINK,PHI)
    DO INOD=1,NODEID(-1)
     
       IF((NWALLID(INOD,2).EQ.-10).OR.(NWALLID(INOD,2).EQ.-11).OR.(NODEID(INOD).EQ.4))THEN    
@@ -1361,6 +1361,28 @@ SUBROUTINE PRESSURE_SMOOTH_SHA(LNODE,NODN,NODEID,NWALLID,&
       
       NNN(INOD)=NN
       PHII(1:NN,INOD)=W(1:NN)
+
+      IF (NN.LE.0) THEN
+         !WRITE(8,*)'WARNING: NO NODE NEAR THE POINT'
+         !WRITE(8,*)'SHAPE FUNCTION ASSIGNED 1'
+         NN=1
+         ND(0)=1
+         W(1)=1.0D0
+         ND(1)=INOD
+         PHI(1)=1.0D0
+         GOTO 30
+       ENDIF
+   
+       IF(NN.LE.3)THEN
+         CALL SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WWI)
+         GOTO 30
+       ENDIF
+
+      30  PINT=0D0
+    DO I2=1,NN
+      PINT=PINT+PHI(I2)*PTMP(ND(I2))      
+    ENDDO
+    P(INOD)=PINT
 
    ENDDO
    !$acc end data
