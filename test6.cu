@@ -98,9 +98,8 @@ extern "C"
 
       mlpgTerOut.close();
 
-      cusp::array1d<ValueType, cusp::host_memory> X_h(A.num_rows);
-
-      X_h=X;
+      cusp::array1d<ValueType, cusp::host_memory> X_h(X);
+      
       #pragma omp parallel for
       for (int i = 0; i < n; i++)
       {
