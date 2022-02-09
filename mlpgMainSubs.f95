@@ -938,8 +938,8 @@ SUBROUTINE CYLIND5(MESHFILE, FSNOD1, FSNOD2, DOMX, DOMY, DOMZ, &
       !WRITE(9,*),COORX(NNI,1),COORY(NNI,1),COORZ(NNI,1),SNX(NNI),SNY(NNI),SNZ(NNI),SMX(NNI),SMY(NNI),SMZ(NNI),SSX(NNI),SSY(NNI),SSZ(NNI),NODEDGETY(NNI,1:2)
    ENDDO
 
-   !$acc data
-   !$acc kernels
+   !$acc data copyin(NODEID,NWALLID,NODEDGETY)
+   !$acc kernels 
    !! FLUID + FS
    DO NNI=1,NODEID(-2)
       NODEID(NNI)=0
@@ -1108,7 +1108,7 @@ SUBROUTINE CYLIND5(MESHFILE, FSNOD1, FSNOD2, DOMX, DOMY, DOMZ, &
    IYMAX=IY+20
    IZMAX=IZ+20
 
-   !$acc parallel loop
+   !$acc parallel loop gang num_gangs(NODEID(0)-NODEID(-2)) vector vector_length(128)
    DO I = NODEID(-2)+1,NODEID(0)
       DO J = I,NODEID(0)
          IF(I.EQ.J) CYCLE
