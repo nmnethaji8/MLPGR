@@ -538,7 +538,7 @@ SUBROUTINE MLPG_GET_UP2(DOMIN, LNODE, NODEID, NWALLID, NIN, &
 
    !$acc data copyin(LNODE, NLMAX, RIAV,NIN, &
    !$acc&  NODEID, NWALLID, XIN, YIN, ZIN)
-   !$acc parallel loop private(ND,W,PHI,A,B,PB2,PP2)
+   !$acc parallel loop private(ND,W,PHI,A,B,PB2,PP2,PT,A,AINV,PT,AA)
    DO INOD=1,NOT
 
       XQ=XOT(INOD)
@@ -551,7 +551,6 @@ SUBROUTINE MLPG_GET_UP2(DOMIN, LNODE, NODEID, NWALLID, NIN, &
         IX1, IY1, IZ1, RIAV, ETMP, DR, DR2, WWI)
         
       NNN(INOD)=NN
-      PHII(1:NN,INOD)=W(1:NN)
 
       IF(NN.LE.0)THEN
          PRINT*,"     [ERR] NO NEGH IN MLPG_GET_UP FOR POI"
@@ -571,10 +570,35 @@ SUBROUTINE MLPG_GET_UP2(DOMIN, LNODE, NODEID, NWALLID, NIN, &
       CALL SHAPPARA_R_SHA(NIN,4,NLMAX,A,B,NN,ND,W,&
          XIN,YIN,ZIN,I,NI,J,K,PB2,PP2,WWI)
 
+         CALL BASEFUN_SHA(4,PT,XQ,YQ,ZQ)
+
+
+    CALL FINDINV4X4(A,AINV,WWI)    
+    IF(ABS(WWI).LT.1E-15)THEN
+      PRINT*,"     [ERR] SINGULAR MATRIX A, ADET ",WWI
+      PRINT*,"     [---] LOC ",XQ,YQ,ZQ
+      CALL SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WWI)
+      GOTO 30
+    ENDIF
+
+    CALL SHAPEFUN_PHI_SHA(4,NLMAX,NN,AINV,B,PT,AA,PHI,I,J,K)
+
       30  UTMP=0D0
+      PHII(1:NN,INOD)=PHI(1:NN)
       VTMP=0D0
       WTMP=0D0
       PTMP=0D0
+      !$acc loop reduction(+:UTMP,VTMP,WTMP,PTMP)
+      DO I2=1,NN
+         UTMP=UTMP+PHI(I2)*UIN(ND(I2))
+         VTMP=VTMP+PHI(I2)*VIN(ND(I2))
+         WTMP=WTMP+PHI(I2)*WIN(ND(I2))
+         PTMP=PTMP+PHI(I2)*PIN(ND(I2))
+       ENDDO
+       UOT(INOD)=UTMP
+       VOT(INOD)=VTMP
+       WOT(INOD)=WTMP
+       POT(INOD)=PTMP
 
    ENDDO
    !$acc end data
