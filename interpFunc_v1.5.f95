@@ -538,7 +538,7 @@ SUBROUTINE MLPG_GET_UP2(DOMIN, LNODE, NODEID, NWALLID, NIN, &
 
    !$acc data copyin(LNODE, NLMAX, RIAV,NIN, &
    !$acc&  NODEID, NWALLID, XIN, YIN, ZIN)
-   !$acc parallel loop private(ND,W)
+   !$acc parallel loop private(ND,W,PHI,A,B,PB2,PP2)
    DO INOD=1,NOT
 
       XQ=XOT(INOD)
@@ -552,6 +552,29 @@ SUBROUTINE MLPG_GET_UP2(DOMIN, LNODE, NODEID, NWALLID, NIN, &
         
       NNN(INOD)=NN
       PHII(1:NN,INOD)=W(1:NN)
+
+      IF(NN.LE.0)THEN
+         PRINT*,"     [ERR] NO NEGH IN MLPG_GET_UP FOR POI"
+         PRINT*,"     [---] ",XQ,YQ,ZQ
+         UOT(INOD)=0D0
+         VOT(INOD)=0D0
+         WOT(INOD)=0D0
+         POT(INOD)=0D0
+         CYCLE
+      ENDIF
+   
+      IF(NN.LE.3)THEN
+         CALL SHEPARDSF_SHA(PHI,NN,W,NLMAX,I,WWI)
+         GOTO 30
+      ENDIF
+   
+      CALL SHAPPARA_R_SHA(NIN,4,NLMAX,A,B,NN,ND,W,&
+         XIN,YIN,ZIN,I,NI,J,K,PB2,PP2,WWI)
+
+      30  UTMP=0D0
+      VTMP=0D0
+      WTMP=0D0
+      PTMP=0D0
 
    ENDDO
    !$acc end data
