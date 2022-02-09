@@ -209,11 +209,13 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
       IF(KK.LE.3)THEN
          DS=DDL
       ELSEIF(KK.LT.6)THEN
+         !$acc loop reduction(+:DS)
          DO IX=1,KK
             DS=DS+DIS(IX)
          ENDDO
          DS=1D0*DS/KK
       ELSE
+         !$acc loop reduction(+:DS)
          DO IX=1,6
             DS=DS+DIS(IX)
          ENDDO
