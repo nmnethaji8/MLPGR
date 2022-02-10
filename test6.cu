@@ -73,13 +73,13 @@ extern "C"
       cusp::monitor<ValueType> monitor(B, 20000, 1e-15, 1e-10, false);
 
       // setup preconditioner
-      /*cusp::precond::diagonal<ValueType, MemorySpace> M(A);
+      cusp::precond::diagonal<ValueType, MemorySpace> M(A);
       //cusp::identity_operator<ValueType, MemorySpace> M(A.num_rows, A.num_rows);
 
       // solve the linear system A * x = b with the BiConjugate Gradient Stabilized method
-      cusp::krylov::bicgstab(A, X, B, monitor, M);*/
+      //cusp::krylov::bicgstab(A, X, B, monitor, M);
 
-      cusp::identity_operator<ValueType, MemorySpace> M(A.num_rows, A.num_rows);
+      //cusp::identity_operator<ValueType, MemorySpace> M(A.num_rows, A.num_rows);
 
       cusp::krylov::gmres(A, X, B, 50, monitor, M);
 
