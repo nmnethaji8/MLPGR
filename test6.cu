@@ -70,31 +70,29 @@ extern "C"
       //  iteration_limit    = 20000
       //  relative_tolerance = 1e-15
       //  absolute_tolerance = 1e-10
-      cusp::monitor<ValueType> monitor(B, 20000, 1e-15, 1e-10, false);
+      cusp::monitor<ValueType> monitor(B, 600, 1e-15, 1e-10, false);
 
       // setup preconditioner
       cusp::precond::diagonal<ValueType, MemorySpace> M(A);
       //cusp::identity_operator<ValueType, MemorySpace> M(A.num_rows, A.num_rows);
 
       // solve the linear system A * x = b with the BiConjugate Gradient Stabilized method
-      //cusp::krylov::bicgstab(A, X, B, monitor, M);
+      cusp::krylov::bicgstab(A, X, B, monitor, M);
 
       //cusp::identity_operator<ValueType, MemorySpace> M(A.num_rows, A.num_rows);
-
-      cusp::krylov::gmres(A, X, B, 50, monitor, M);
 
       // report solver results
       ofstream mlpgTerOut;
       mlpgTerOut.open("mlpgTerOut.txt", ofstream::app);
-      if (monitor.converged())
+      if (!bool(monitor.converged()))
       {
-         mlpgTerOut << " [PARACSR]\t1\t" << monitor.iteration_count() << "\t" << endl;
+         mlpgTerOut << " Solver reached iteration limit " << monitor.iteration_limit() << " before converging";
+         mlpgTerOut << " to " << monitor.relative_tolerance() << " relative tolerance\n";
+         mlpgTerOut << " [ERR] BiCGStab Failed. Shifting to GMRES\n";
+
+         cusp::krylov::gmres(A, X, B, 50, monitor, M);
       }
-      else
-      {
-         mlpgTerOut << "Solver reached iteration limit " << monitor.iteration_limit() << " before converging";
-         mlpgTerOut << " to " << monitor.relative_tolerance() << " relative tolerance " << endl;
-      }
+      mlpgTerOut << " [PARACSR]\t1\t" << monitor.iteration_count() << "\t" << endl;
 
       mlpgTerOut.close();
 
