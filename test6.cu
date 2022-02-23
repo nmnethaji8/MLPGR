@@ -57,12 +57,9 @@ extern "C"
 
       // allocate storage for solution (x) and right hand side (b)
       cusp::array1d<ValueType, MemorySpace> X(A.num_rows, 0);
+      cusp::array1d<ValueType, cusp::host_memory> X_h(A.num_rows, 0);
       cusp::array1d<ValueType, MemorySpace> B(rh);
       
-      /*for (int i = 0; i < n; i++)
-      {
-         B[i] = rhs[i];
-      }*/
       // cusp::print(B);
 
       // std::cout << typeid(A.row_offsets).name() << '\n';
@@ -90,14 +87,14 @@ extern "C"
          mlpgTerOut << " to " << monitor.relative_tolerance() << " relative tolerance\n";
          mlpgTerOut << " [ERR] BiCGStab Failed. Shifting to GMRES\n";
 
+         X=X_h;
          cusp::krylov::gmres(A, X, B, 50, monitor, M);
       }
       mlpgTerOut << " [PARACSR]\t1\t" << monitor.iteration_count() << "\t" << endl;
 
       mlpgTerOut.close();
-
-      cusp::array1d<ValueType, cusp::host_memory> X_h(X);
       
+      X_h=X;
       #pragma omp parallel for
       for (int i = 0; i < n; i++)
       {
