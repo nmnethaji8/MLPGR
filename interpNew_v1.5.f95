@@ -1907,7 +1907,7 @@ IMPLICIT NONE
    !$acc data copyin(PPX,PPY,PPZ,FB,&
    !$acc&  COORX,COORY,COORZ,NODTAL,IK,R,R0,&
    !$acc&  NODEID,NWALLID)
-   !$acc parallel loop gang num_gangs(NODTAL) vector vector_length(16)
+   !$acc parallel loop gang num_gangs(NODTAL) vector vector_length(32)
    DO INOD=1,NODTAL
 
       PPXI=0.0
