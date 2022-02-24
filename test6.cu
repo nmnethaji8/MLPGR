@@ -26,14 +26,6 @@ extern "C"
       
       vector<int>ro(rowoffset, rowoffset + n + 1);
 
-      /*cout << "Row offset\n";
-      for (int i = 0; i <= n; i++)
-      {
-         A.row_offsets[i] = rowoffset[i];
-         //cout << rowoffset[i] << " ";
-      }
-      cout << "\n*";*/
-
       vector<int>co(col, col + nnz);
 
       vector<double>va(val, val + nnz);
@@ -44,25 +36,11 @@ extern "C"
       A.column_indices=co;
       A.values=va;
 
-      /*cout << "cloumn and val\n";
-      for (int i = 0; i < n; i++)
-      {
-         //A.column_indices[i] = col[i];
-         //A.values[i] = val[i];
-
-         // cout << col[i] << " " << val[i] << "\n";
-      }*/
-
-      // cusp::print(A);
-
       // allocate storage for solution (x) and right hand side (b)
       cusp::array1d<ValueType, MemorySpace> X(A.num_rows, 0);
       cusp::array1d<ValueType, cusp::host_memory> X_h(A.num_rows, 0);
       cusp::array1d<ValueType, MemorySpace> B(rh);
       
-      // cusp::print(B);
-
-      // std::cout << typeid(A.row_offsets).name() << '\n';
       // set stopping criteria:
       //  iteration_limit    = 20000
       //  relative_tolerance = 1e-15
@@ -88,10 +66,13 @@ extern "C"
          mlpgTerOut << " [ERR] BiCGStab Failed. Shifting to GMRES\n";
 
          X=X_h;
+         monitor.reset (B);
          cusp::krylov::gmres(A, X, B, 50, monitor, M);
-      }
-      mlpgTerOut << " [PARACSR]\t1\t" << monitor.iteration_count() << "\t" << endl;
 
+      }
+
+      mlpgTerOut << " [PARACSR]\t1\t" << monitor.iteration_count() << "\t" << endl;
+      
       mlpgTerOut.close();
       
       X_h=X;
