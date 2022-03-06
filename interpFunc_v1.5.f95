@@ -55,7 +55,7 @@ CONTAINS
                         IF(WWI.LE.0D0)CYCLE
                         NN=NN+1
                         IF(NN.GT.NLMAX)THEN
-                           PRINT*," [ERR] INCREASE NLMAX IN WEIGHTF3_SHA"
+                           PRINT*," [ERR] INCREASE NLMAX IN WEIGHTF3_XY_SHA"
                            STOP
                         ENDIF
                         ND(NN)=I
@@ -194,7 +194,7 @@ CONTAINS
                      IF(WWI.LE.0D0)CYCLE
                      NN=NN+1
                      IF(NN.GT.NLMAX)THEN
-                        PRINT*," [ERR] INCREASE NLMAX IN WEIGHTF3_SHA"
+                        PRINT*," [ERR] INCREASE NLMAX IN WEIGHTF4_SHA"
                         STOP
                      ENDIF
                      ND(NN)=I

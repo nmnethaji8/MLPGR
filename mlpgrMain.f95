@@ -370,7 +370,7 @@ PROGRAM THREED_BREAKINGWAVE
          !NLMAXN=15
          CALL MLPG_GET_ETA(FSDOM, NFS, XFS(1:NFS), YFS(1:NFS), &
             ZFS(1:NFS), NPOI1, MM%CX(1:NPOI1), MM%CY(1:NPOI1), &
-            MM%ET(1:NPOI1), ERRTMP(1:NPOI1), DDL, 30, 1)
+            MM%ET(1:NPOI1), ERRTMP(1:NPOI1), DDL, 100, 1)
 
          I=MINLOC(MM%ET(1:NPOI1),1)
          WRITE(8,'("     [---] MIN ETA, NID ",F15.6,I15)') &
@@ -423,7 +423,7 @@ PROGRAM THREED_BREAKINGWAVE
          CALL MLPG_GET_UP(MLDOM,I,CM%CX(1:I),CM%CY(1:I),CM%CZ(1:I), &
             CM%UX(1:I),CM%UY(1:I),CM%UZ(1:I),CM%PR(1:I), &
             J,MM%CX(1:J),MM%CY(1:J),MM%CZ(1:J), &
-            MM%UX(1:J),MM%UY(1:J),MM%UZ(1:J),MM%PR(1:J),DDL,100)
+            MM%UX(1:J),MM%UY(1:J),MM%UZ(1:J),MM%PR(1:J),DDL,200)
 
          DO I = 1, MM%NP
             IX = MMTOIM(I)
