@@ -1,7 +1,7 @@
 #Makefile for MLPG
 
-FC = /opt/nvidia/hpc_sdk/Linux_x86_64/21.7/compilers/bin/nvfortran
-nv = /opt/nvidia/hpc_sdk/Linux_x86_64/21.7/compilers/bin/nvcc
+FC = /opt/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/nvfortran
+nv = /opt/nvidia/hpc_sdk/Linux_x86_64/22.3/compilers/bin/nvcc
 v = -Mcuda -acc #ptxinfo
 
 mlpgrCuda:mlpgrMain.o collision_v1.o remesh_v1.o resume.o mlpgMainSubs.o SbyK.o test6.o interpFunc_v1.5.o interpNew_v1.5.o modules_v3.1.o fnptCoupling.o nodelinkNew_v2.3.o modCommon.o
@@ -21,7 +21,7 @@ interpFunc_v1.5.o:interpFunc_v1.5.f95 nodelinkNew_v2.3.o interpNew_v1.5.o
 	$(FC) $(v) -Minfo=acc -c interpFunc_v1.5.f95
 
 test6.o:test6.cu
-	$(nv) -Xcompiler -fopenmp -c -I /home/vsriram/Documents/MLPGR/MLPGR_CUDA test6.cu
+	$(nv) -Xcompiler -fopenmp -c -I ../ test6.cu
 
 interpNew_v1.5.o:interpNew_v1.5.f95 modules_v3.1.o
 	$(FC) $(v) -Minfo=acc -c interpNew_v1.5.f95
