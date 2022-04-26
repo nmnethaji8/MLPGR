@@ -146,10 +146,8 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
    INTEGER::INWK(IDSZ)
    INTEGER(KIND=4)::I,J,K,IX,IY,IZ,IPOS,KK,IX1,IY1,IZ1,IK,IN
 
-   REAL(KIND=8),MANAGED,ALLOCATABLE::DIS(:,:)
-   INTEGER(KIND=4),MANAGED,ALLOCATABLE::IN12(:,:)
-
-   ALLOCATE(DIS(IDSZ,NODN),IN12(IDSZ,NODN))
+   REAL(KIND=8)::DIS(IDSZ)
+   INTEGER(KIND=4)::IN12(IDSZ)
 
    WRITE(8,'(" [MSG] ENTERING NODELINK_3_SHA")')
 
@@ -160,8 +158,8 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
    CIRCLE_S_WALL= 4.5D0*DDL !4.5D0*DDL   !DOMAIN OF WALL PARTICLES
 
    !$acc data copyin(NODN,NODEID,NWALLID,CIRCLE_WATER,CIRCLE_WALL,&
-   !$acc& CIRCLE_S_WALL,MLDOM,COORX,COORY,COORZ,NLINK,DDR,R0,R,CC,DIS,IN12)
-   !$acc parallel loop gang num_gangs(NODN) vector vector_length(32)
+   !$acc& CIRCLE_S_WALL,MLDOM,COORX,COORY,COORZ,NLINK,DDR,R0,R,CC)
+   !$acc parallel loop gang num_gangs(NODN) vector vector_length(32) private(IN12,DIS)
    DO I=1,NODN
       IF(I.LE.NODEID(-2))RIAV=CIRCLE_WATER
       IF(I.GT.NODEID(-2))RIAV=CIRCLE_WALL
@@ -188,17 +186,17 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
                         IF(DR.GT.RIAV) CYCLE
                         KK=KK+1
                         IF(KK.GT.IDSZ)PRINT*," [ERR] INCREASE IDSZ"
-                        IN12(KK,I)=IN
-                        DIS(KK,I)=DR
+                        IN12(KK)=IN
+                        DIS(KK)=DR
                      ENDIF
                   ENDDO
                ENDIF
             ENDDO
          ENDDO
       ENDDO
-      CALL SORTBYKEY(IN12(1:KK,I),DIS(1:KK,I),KK)
+      CALL SORTBYKEY(IN12(1:KK),DIS(1:KK),KK)
 
-      NLINK(I)%I(1:KK) = IN12(1:KK,I)
+      NLINK(I)%I(1:KK) = IN12(1:KK)
       
       NLINK(I)%I(0) = KK
 
@@ -214,13 +212,13 @@ SUBROUTINE NODELINK_3_SHA(MLDOM,LNODE,NODN,SCALE,DDL,DDR,&
       ELSEIF(KK.LT.6)THEN
          !$acc loop reduction(+:DS)
          DO IX=1,KK
-            DS=DS+DIS(IX,I)
+            DS=DS+DIS(IX)
          ENDDO
          DS=1D0*DS/KK
       ELSE
          !$acc loop reduction(+:DS)
          DO IX=1,6
-            DS=DS+DIS(IX,I)
+            DS=DS+DIS(IX)
          ENDDO
          DS=1D0*DS/6D0
       ENDIF
