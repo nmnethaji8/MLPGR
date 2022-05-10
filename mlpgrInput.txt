@@ -33,16 +33,16 @@ Q) Number of OpenMP Threads
 8
 
 Q) Maximum number of nodes (LNODE)
-170000
+400000
 
 Q) Name of mesh-file
-EmptyTank_L21_dr043.txt
+CylTank_L21_dr043.txt
 Q) Domain Bottom Left (X, Y, Z) (m, m, m)
 0 0 0
 Q) Domain Top Right (X, Y, Z) (m, m, m)
-21 0.7 0.7
+21 1.4 0.7
 Q) Cylinder (Centre-X Centre-Y Radius)
-10.50d0 0.35d0 0.04375d0
+6.50d0 0.7d0 0.11d0
 
 Q) X Location of Sponge layer start (before right-wall)
 13.00
@@ -51,18 +51,26 @@ Q) Remeshing Freq (=0 to disable)
 
 Q) Wave probe numbers and locations (nProbe | X Y )
 9
-1D0 	0.35D0
-5.93D0 	0.35D0
-6.50D0 	0.35D0
-7.20D0	0.35D0
-5D0 	0.35D0
-6D0 	0.35D0
-7D0 	0.35D0
-8D0 	0.35D0
-9D0 	0.35D0
+1D0 	0.7D0
+5.93D0 	1.2D0
+6.50D0 	1.2D0
+7.20D0	1.2D0
+5D0 	1.2D0
+6D0 	1.2D0
+7D0 	1.2D0
+8D0 	0.7D0
+9D0 	0.7D0
 
 Q) Pressure probe number and location (nProbe | X Y Z)
-0
+8
+6.385d0 	0.7000d0	0.415d0
+6.385d0 	0.7000d0	0.515d0
+6.385d0 	0.7000d0	0.615d0
+6.385d0 	0.7000d0	0.715d0
+6.385d0 	0.7000d0	0.815d0
+6.3919d0 	0.7393d0 	0.615d0
+6.5000d0 	0.8150d0 	0.615d0
+6.6150d0 	0.7000d0 	0.615d0
 
 
 ---- FNPT Coupling for Wavemaking ----
